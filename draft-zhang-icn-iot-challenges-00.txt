@@ -1,0 +1,1064 @@
+
+
+
+
+ICN Research Group                                              Y. Zhang
+Internet-Draft                                            D. Raychadhuri
+Intended status: Informational                WINLAB, Rutgers University
+Expires: January 18, 2015                                      L. Grieco
+                                               Politecnico di Bari (DEI)
+                                                             E. Baccelli
+                                                                   INRIA
+                                                                J. Burke
+                                                                    UCLA
+                                                            R. Ravindran
+                                                                 G. Wang
+                                                     Huawei Technologies
+                                                           July 17, 2014
+
+
+      ICN based Architecture for IoT - Requirements and Challenges
+                   draft-zhang-icn-iot-challenges-00
+
+Abstract
+
+   Internet of Things (IoT) promises to connect billions of objects to
+   Internet.  After deploying many stand-alone IoT systems in different
+   domains, the current trend is to develop a unified de-fragmented IoT
+   platform so that objects can be made accessible to applications
+   across organizations and domains.  Towards this goal, quite a few
+   proposals have been made to build a unified IoT platform as an
+   overlay on top of today's Internet.  Such overlay solutions, however,
+   are inadequate to address the important challenges posed by a unified
+   IoT system, especially in terms of mobility, scalability, and
+   communication reliability, due to the inherent inefficiencies of the
+   current Internet.  To address this problem, we propose to build a
+   unified IoT platform based on the Information Centric Network (ICN)
+   architecture, which we call ICN-IoT.  ICN-IoT leverages the salient
+   features of ICN, and thus provides seamless mobility support,
+   scalability, and efficient content and service delivery.
+
+   This draft sets the IoT requirement and ICN challenges to realize an
+   unified ICN-IoT framework.  Towards this, we first identify a list of
+   important requirements which an unified IoT architecture should have
+   to support tens of billions of objects.  Then we analyze the current
+   state of art deployment model and discuss popular IoT scenarios as in
+   smart homes, smart campus, smart grid, smart transportation, and
+   smart healthcare.  Though we see most of these requirements are part
+   of an ICN design, we discuss specific challenges ICN has to address
+   to satisfy them considering heterogeneity in IoT environments.
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 1]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on January 18, 2015.
+
+Copyright Notice
+
+   Copyright (c) 2014 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  IoT Motivation and Challenges . . . . . . . . . . . . . . . .   3
+   2.  IoT Requirements  . . . . . . . . . . . . . . . . . . . . . .   3
+     2.1.  Naming  . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     2.2.  Scalability . . . . . . . . . . . . . . . . . . . . . . .   4
+     2.3.  Resource Constraints  . . . . . . . . . . . . . . . . . .   4
+     2.4.  Traffic Characteristics . . . . . . . . . . . . . . . . .   5
+     2.5.  Contextual Communication  . . . . . . . . . . . . . . . .   5
+     2.6.  Handling Mobility . . . . . . . . . . . . . . . . . . . .   6
+     2.7.  Storage and Caching . . . . . . . . . . . . . . . . . . .   6
+     2.8.  Security and Privacy  . . . . . . . . . . . . . . . . . .   6
+     2.9.  Communication Reliability . . . . . . . . . . . . . . . .   7
+     2.10. Self-Organization . . . . . . . . . . . . . . . . . . . .   7
+     2.11. Ad hoc and Infrastructure Mode  . . . . . . . . . . . . .   7
+     2.12. Open API  . . . . . . . . . . . . . . . . . . . . . . . .   7
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 2]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   3.  State of Art  . . . . . . . . . . . . . . . . . . . . . . . .   8
+     3.1.  Silo IoT Architecture . . . . . . . . . . . . . . . . . .   8
+     3.2.  Overlay Based Unified IoT Solutions . . . . . . . . . . .   9
+       3.2.1.  Weaknesses of the Overlay-based Approach  . . . . . .   9
+   4.  Popular Scenarios and Challenges  . . . . . . . . . . . . . .  11
+     4.1.  Smart Homes . . . . . . . . . . . . . . . . . . . . . . .  11
+     4.2.  Smart Campus  . . . . . . . . . . . . . . . . . . . . . .  11
+     4.3.  Smart Grid  . . . . . . . . . . . . . . . . . . . . . . .  12
+     4.4.  Smart Transportation  . . . . . . . . . . . . . . . . . .  12
+     4.5.  Smart Healthcare  . . . . . . . . . . . . . . . . . . . .  13
+   5.  ICN Challenges for IoT  . . . . . . . . . . . . . . . . . . .  13
+     5.1.  Naming  . . . . . . . . . . . . . . . . . . . . . . . . .  13
+     5.2.  Caching . . . . . . . . . . . . . . . . . . . . . . . . .  14
+     5.3.  Name resolution . . . . . . . . . . . . . . . . . . . . .  14
+     5.4.  Contextual Communication  . . . . . . . . . . . . . . . .  14
+     5.5.  Routing and Forwarding  . . . . . . . . . . . . . . . . .  14
+     5.6.  In-network Computing  . . . . . . . . . . . . . . . . . .  14
+     5.7.  Energy Efficiency . . . . . . . . . . . . . . . . . . . .  15
+     5.8.  Security and Privacy  . . . . . . . . . . . . . . . . . .  15
+   6.  Informative References  . . . . . . . . . . . . . . . . . . .  15
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  17
+
+1.  IoT Motivation and Challenges
+
+   During the past decade, many standalone Internet of Things (IoT)
+   systems have been developed and deployed in different domains [4].
+   The recent trend, however, is to evolve towards a globally unified
+   IoT platform, in which billions of objects connect to the Internet,
+   available for interactions among themselves, as well as interactions
+   with many different applications across boundaries of administration
+   and domains.  Building a unified IoT platform, however, poses great
+   challenges on the underlying network and systems.  To name a few, it
+   needs to support 50-100 Billion networked objects [1], many of which
+   are mobile.  The objects will have extremely heterogeneous means of
+   connecting to the Internet, often with severe resource constraints.
+   Interactions between the applications and objects are often real-time
+   and dynamic, requiring strong security and privacy protections.Before
+   we present our solution to such a unified platform, we first describe
+   a few popular IoT scenarios to motivate this proposal.
+
+2.  IoT Requirements
+
+   A unified IoT platform has to support interactions among a large
+   number of mobile devices across the boundaries of organizations and
+   domains.  As a result, it naturally poses stringent requirements in
+   every aspect of the system design.  Below, we outline a few important
+   requirements that a unified IoT platform has to address.
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 3]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+2.1.  Naming
+
+   The first step towards realizing a unified IoT platform is the
+   ability to assign names that are unique within the scope/lifetime of
+   each device, data items generated by these devices, or a group of
+   devices.  Naming has the following requirements.  First, names need
+   to be application-centric, i.e., solely serving the purpose of an
+   application or service.  Second, names need to be persistent against
+   dynamic attributes that are common in IoT systems, such as mobility
+   or migration.  Third, names may need to be secure based on
+   application requirement.
+
+2.2.  Scalability
+
+   Cisco predicts there will be around 50 Billion IoT devices such as
+   sensors, RFID tags, and actuators, on the Internet by 2020 [1].  As
+   mentioned above, a unified IoT platform needs to name every
+   informational entity such as data, devices, etc.  To deal with
+   scalability, the name-locator separation is the basic requirement,
+   implying that it is necessary to have a name resolution service.  The
+   requirement on such a resolution service is thus clear: the system
+   should be able to insert/update/look up a name within a short
+   latency.  To satisfy this requirement, decentralization of the name
+   resolution is the key.
+
+2.3.  Resource Constraints
+
+   IoT devices can be broadly classified into two groups: resource-
+   sufficient and resource-constrained.  In general, there are the
+   following types of resources: power, computing, storage, and
+   bandwidth.
+
+   Power constraints of the IoT devices limit how much data these
+   devices can communicate, as it has been shown that communications
+   consume more power than other activities for embedded devices.
+   Flexible techniques to collect the relevant information are required,
+   and uploading every single produced data to a central server is
+   undesirable.  Computing constraints limit the type and amount of
+   processing these devices can perform, also information needs to be
+   available where it is more likely to be consumed.  As a result, more
+   complex processing needs to be conducted elsewhere, example at the
+   network edge, which makes it important to balance local computation
+   versus communication.
+
+   Storage constraints of the IoT devices limit the amount of data that
+   can be stored on the devices.  This constraint means that unused
+   sensor data may need to be discarded from time to time.  Bandwidth
+   constraints of the IoT devices limit the amount of communication
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 4]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   these devices can have, which will have the same implication on the
+   system architecture as the power constraints; namely, we cannot
+   afford to communicate with every single sensor data generated by the
+   device.
+
+2.4.  Traffic Characteristics
+
+   IoT traffic can be broadly classified into local area traffic and
+   wide area traffic.  Local area traffic is between nearby devices.
+   For example, neighboring cars may work together to detect potential
+   hazards on the highway, sensors deployed in the same room may
+   collaborate to determine how to adjust the heating level in the room.
+   These local area communications often involve data aggregation and
+   filtering, have real time constraints, and require fast device/data/
+   service discovery and association.  At the same time, the IoT
+   platform has to also support wide area communications.  For example,
+   commuters can find out real-time traffic and road information and
+   then decide which commuting route to take.  Wide area communications
+   require efficient data/service discovery and resolution services.
+
+   While traffic characteristics for different IoT systems are expected
+   to different, certain IoT systems have been analyzed and shown to
+   have comparable uplink and downlink traffic volume in some
+   applications such as [18], which means that we have to optimize the
+   bandwidth/energy consumption in both directions.  Further, IoT
+   traffic demonstrates certain periodicity and burstiness [18].  As a
+   result, when provisioning the system, peak traffic volume has to be
+   considered.
+
+2.5.  Contextual Communication
+
+   Many IoT applications shall rely on contextual information such as
+   social, grouping, location, type of ecosystem (home, grid, transport
+   etc.) of devices and data (which are referred to as contexts in this
+   document) to initiate dynamic relationship and communication.  For
+   example, cars travelling on the highway may form a "cluster" based
+   upon their temporal physical proximity as well as the detection of
+   the same event.  These temporary groups are referred to as contexts.
+   IoT applications need to support interactions among the members of a
+   context, as well as interactions across contexts.
+
+   Temporal context can be broadly categorized into two classes, long-
+   term contexts such as those that are based upon social contacts as
+   well as stationary physical locations (e.g., sensors in a car/
+   building), and short-term contexts such as those that are based upon
+   temporary proximity (e.g., all taxicabs within half a mile of the
+   Time Square at noon on Oct 1, 2013).  Between these two classes,
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 5]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   short-term contexts are more challenging to support, requiring fast
+   formation, update, lookup and association of these contexts.
+
+2.6.  Handling Mobility
+
+   Mobility in the IoT platform can mean 1) the data producer mobility
+   (i.e., location change), 2) the data consumer mobility, 3) IoT
+   Network mobility; and 3) disconnection between the data source and
+   destination pair (e.g., due to unreliable wireless links).  The
+   requirement on mobility support is to be able to deliver IoT data
+   below an application acceptable delay constraint in all of the above
+   three cases.
+
+   There are varying degrees of mobility in a unified IoT platform,
+   ranging from static as in fixed assets to highly dynamic in vehicle-
+   to-vehicle environments.
+
+2.7.  Storage and Caching
+
+   Storage and caching plays a very significant role depending on the
+   type of IoT ecosystem with the fact that data generated is also
+   subjected to privacy and security guidelines.  In a unified IoT
+   platform, depending on content caching requirements can be cached at
+   will or at service authorized points, and thus we don't need to
+   always forward a content request to its original creator.  Rather,
+   locating and receiving a cached copy is sufficient for IoT
+   applications.  This optimization can greatly reduce the content
+   access latencies.
+
+   In network storage and caching, however, has the following
+   requirements on the IoT platform.  First, the platform needs to
+   support the efficient resolution of cached copies.  Second, certain
+   content should not be cached anywhere, and the service platform
+   should be able to enforce this.  Third, the platform should strive
+   for the balance between caching, content security/privacy, and
+   regulations.
+
+2.8.  Security and Privacy
+
+   The unified IoT platform makes physical objects accessible to
+   applications across organizations and domains, and security and
+   privacy thus become a serious concern.  Security includes data
+   integrity, authentication, trust management, and access control at
+   different layers of the IoT platform.  Privacy means that both the
+   content and the context around IoT data need to be protected.  These
+   requirements will be driven by various stake holders such as
+   industry, government, consumers etc.
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 6]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+2.9.  Communication Reliability
+
+   IoT applications can be broadly categorized into mission critical and
+   non-mission critical.  For mission critical applications, reliable
+   communication is one of the most important features as these
+   applications have strong QoS requirements.  Reliable communication
+   requires the following capabilities for the underlying system: (1)
+   seamless mobility support to support for extreme disruptions (DTN),
+   (2) efficient routing in the presence of intermittent disconnection,
+   and (3) QoS aware routing.
+
+2.10.  Self-Organization
+
+   The unified IoT platform should be able to self-organize to meet
+   various application requirements, especially the capability to
+   quickly discover heterogeneous and relevant devices/data/services
+   based on the context.  This discovery can be achieved through an
+   efficient platform-wide publish-subscribe service, or through private
+   community grouping/clustering based upon trust and other security
+   requirements.  In the former case, the publish-subscribe service must
+   be efficiently implemented, able to support seamless mobility, in-
+   network caching, name-based routing, etc.  In the latter case, the
+   IoT platform needs to discover the private community groups/clusters
+   efficiently.
+
+2.11.  Ad hoc and Infrastructure Mode
+
+   Depending upon whether there is communication infrastructure, an IoT
+   system can be classified as either ad-hoc or infrastructure mode.
+   For example, a vehicle may determine to report its location and
+   status information to a server periodically through cellular
+   connection, or, a group of vehicles may form an ad-hoc network that
+   collectively detect road conditions around them.  In the cases where
+   infrastructure is unavailable, one of the participating nodes may
+   choose to become the temporary gateway.  The open IoT platform needs
+   to be able to handle both situations.
+
+   The unified IoT platform needs to design a common protocol that
+   serves both modes.  Such a protocol should be able to provide: (1)
+   energy-efficient topology discovery and data forwarding in the ad-hoc
+   mode, and (2) scalable name resolution in the infrastructure mode.
+
+2.12.  Open API
+
+   General IoT applications involve sensing, processing, and secure
+   content distribution occuring at various timescales depending on the
+   application requirements.  This requires open APIs to be generic
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 7]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   enough to support Pull, Push, and support Pub/Sub mode of interaction
+   between consumers, content producer, and IoT services.
+
+3.  State of Art
+
+   Over the years, many stand-alone IoT systems have been deployed in
+   various domains.  These systems usually adopt a vertical silo
+   architecture and support a small set of pre-designated applications.
+   A recent trend, however, is to move away from this approach, towards
+   a unified IoT platform in which the existing silo IoT systems, as
+   well as new systems that are rapidly deployed, will make their data
+   and services accessible to general Internet applications (as in ETSI-
+   M2M and oneM2M standards).  In such a unified platform, physical
+   world resources can be accessed over Internet and shared across the
+   boundaries of physical, enterprise and application.  However, current
+   approaches to achieving this objective are based upon Internet
+   overlays, whose inherent inefficiencies hinders the platform from
+   satisfying the IoT requirements outlined earlier (particularly in
+   terms of scalability, security, mobility, and self-organization)
+
+3.1.  Silo IoT Architecture
+
+
+                          [IoT Server]
+                               |
+                               |
+                         ______|_______
+    _______             {              }
+   {       }            {              }
+   {IoT Dev}\           {   Internet   }---[IoT Application]
+   {_______}  [IoTGW]---{              }
+                        {              }
+                        {______________}
+
+
+        Figure 1:Silo architecture of standalone IoT systems
+
+
+   A typical standalone IoT system is illustrated in Figure 1, which
+   includes devices, a gateway, a server and applications.  Many IoT
+   devices have limited power and computing resources, unable to
+   directly run normal IP access network (Ethernet, WIFI, 3G/LTE etc.)
+   protocols.  Therefore, we use the IoT gateway to connect these
+   devices to the server.  Through the IoT server, applications can
+   subscribe to the data collected by the devices, or interact with the
+   devices.
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 8]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   There have been quite a few popular protocols for standalone IoT
+   systems, such as DF-1, MelsecNet, Honeywell SDS, BACnet, etc.
+   However, these protocols are host-driven, instead of information
+   driven, leading to a highly fragmented protocol space with limited
+   interoperability.
+
+3.2.  Overlay Based Unified IoT Solutions
+
+   The current approach to a unified IoT platform is to make IoT
+   gateways and servers adopt standard APIs.  IoT devices connect to the
+   Internet through the standard APIs and IoT applications subscribe and
+   receive data through standard control and data APIs.  Building on top
+   of today's Internet as an overlay, this is the most practical
+   approach towards a unified IoT platform.  There are ongoing
+   standardization efforts including ETSI[19], oneM2M[20] CORE[21].
+   Network operators can use standard API to build common IOT gateways
+   and servers for their customers.  Figure 2 shows the architecture
+   adopted in this approach.
+
+
+                 Publishing----[IoT Server]----Subscribing--
+                     |        /    |       \                |
+                     |       /     |        \               |
+                     |      /______|_______  \              |
+    ___________      |     /{              }  publishing    |
+   {           }     |    | {              }     |          |
+   {Smart Homes}\    |    | {   Internet   }---------[IoT Application]
+   {___________}  [IoTGW]---{              }\    |     ________________
+                          | {              } \   |    {                }
+                          | {______________}  [IoTGW]-{Smart Healthcare}
+                          |        |                  {________________}
+                     Publishing [IoTGW]
+                          |    ____|_____
+                          |   {          }
+                           ---{Smart Grid}
+                              {__________}
+
+
+   Figure 2: Implementing an open IoT platform through standarized APIs
+                on the IoT gateways and the server
+
+
+3.2.1.  Weaknesses of the Overlay-based Approach
+
+   The above overlay-based approach can work with many different
+   protocols, but the system is not designed in a holistic manner.
+   Another limiting factor is that it is built upon today's IP network,
+   which has a few inherent weaknesses towards supporting a unified IoT
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 9]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   system.  As a result, it cannot satisfy some of the requirements we
+   outlined in Section 2:
+
+   o  Naming.  In current overlays for IoT systems the naming scheme is
+      host centric, i.e., the name of a given resource/service is linked
+      to the one of device that can provide it.  In turn, device names
+      are coupled to IP addresses, which are not persistent in mobile
+      scenarios.  On the other side, in IoT systems the same service/
+      resource could be provided by many different devices thus
+      requiring a different design rationale.
+
+   o  Scalability.  The overlay-based approach uses IP addresses as
+      names at the network layer, which does not provide the scalability
+      needed to support device/service mobility or flexible name
+      resolution.
+
+   o  Resource constraints.  The overlay-based approach requires every
+      device to send data to the IoT server.  Resource constraints of
+      the IoT devices, especially in power and bandwidth, will seriously
+      limit the performance of this approach.
+
+   o  Traffic Characteristics.  In this approach, applications are
+      written in a host-centric manner suitable for point-to-point
+      communcation.  IoT requires support for multicasting that is
+      challenging the underlying for overlay systems today.
+
+   o  Contextual Communications.  This overlay-based approach cannot
+      react to dynamic contextual changes in a timely fashion.  The main
+      reason is that context lists are kept at the IoT server in this
+      approach, and they cannot help efficiently route requests/
+      information at the network layer.
+
+   o  Mobility.  The overlay-based approach cannot seamlessly support
+      device mobility.  In this approach, communications are IP driven,
+      which is inefficient for mobility support.
+
+   o  Storage and Caching.  The overlay-based approach does not provide
+      efficient in-network storage and caching support.  Also,
+      applications are written in a host-centric manner, wherein network
+      requests are bound to a specific destination host/server instead
+      of a specific piece of content.
+
+   o  Communication Reliability.  The overlay-based approach offers
+      insufficient communication reliability when the devices/services/
+      data are mobile.
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 10]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   o  Self-Organization.  The overlay-based approach is topology-based
+      as it is bound to IP semantics, and thus does not sufficiently
+      satisfy the self-organization requirement.
+
+   o  Ad-hoc and infrastructure mode.  As mentioned above, the overlay-
+      based approach lacks self-organization, and thus does not provide
+      efficient support for the ad-hoc mode.
+
+4.  Popular Scenarios and Challenges
+
+   Several types of IoT applications exists, where the goal is efficient
+   and secure management and communication among objects in the system
+   and with the physical world through sensors, RFIDs and other devices.
+   Below we list a few popular IoT applications.
+
+4.1.  Smart Homes
+
+   Home [10] is a complex ecosystem for smart systems such as climate
+   control, home security monitoring, smoke detection, or smart meters.
+   In a unified IoT platform, we would inter-connect these systems
+   through the Internet, such that they can interact with each other and
+   make decisions at an aggregated level.  Also, the systems can be
+   accessed and manipulated remotely.  The challenges for smart home
+   include topology independent service discovery, common protocol for
+   heterogeneous device/application/service interaction, policy based
+   routing/forwarding, service mobility as well as privacy protection.
+
+   Smart home [2][6] faces the following challenges that are hard to
+   address with IP-based overlay solutions: (1) context-aware control: a
+   smart home system must make decisions (e.g., decisions on how to
+   control, decisions on when to collect data, decisions on where to
+   carry out computation, etc.) based upon the contextual information
+   [3]; (2) inter-operatibility: a smart home system must operate with
+   devices that adopt heterogeneous naming, communication, and control
+   systems; (3) mobility: a smart home system must deal with mobility
+   caused by the movement of sensors or data receivers; (4) security: a
+   smart home system must be able to deal with foreign devices.
+
+4.2.  Smart Campus
+
+   Increasing number of campuses [7] are equipped with sensing and
+   communication devices, inside enterprise or classroom buildings, at
+   stadium, on parking lots, on school buses, etc.  A unified IoT
+   platform can tightly integrate different parts of campus life, and
+   thus enable many IoT applications that can benefit a large body of
+   enterprise affiliates.  The challenges in smart campus include
+   efficient and secure device/data/resource discovery, inter-
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 11]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   operability between different control systems, throughput scaling
+   with number of devices, and unreliable communication due to mobility.
+
+   Smart campus [7] faces the following challenges that are hard to
+   address with IP-based overlay solutions: (1) efficient device/data/
+   resource discovery: a smart campus system must be able to quickly
+   discover requested device, data, or resources; (2) scalability: a
+   smart campus system must be able to scale efficiently with the number
+   and type of sensors and devices; (3) mobility: a smart campus system
+   must be able to deal with mobility caused by movement of devices.
+
+4.3.  Smart Grid
+
+   Central to smart grid [17]  is data flow and information management,
+   achieved by using sensors and actuators, which enables important
+   capabilities such as substation and distribution automation.  In a
+   unified IoT platform, data collected from different smart grids can
+   be integrated to reach more significant optimizations.  The
+   challenges for smart grid include reliability, real-time control,
+   secure communications, and data privacy.
+
+   Smart grid [11][12]  faces the following challenges that are hard to
+   address with IP-based overlay solutions: (1) scalability: a smart
+   grid system must be able to scale gracefully to manage a large number
+   of heterogeneous devices; (2) real time: a smart grid system must be
+   able to perform real-time data collection, data processing and
+   control; (3) reliability: a smart grid system must be resilient to
+   hardware/software/networking failures; (4) security: a smart grid
+   system must be able to defend against malicious attacks.
+
+4.4.  Smart Transportation
+
+   We are currently witnessing the increasing integration of sensors
+   into cars and transportation frieghts [13].  Current production cars
+   already carry many sensors ranging from rain gauges and
+   accelerometers over wheel rotation/traction sensors, to cameras.
+   While intended for internal vehicle functions, these could also be
+   networked and leveraged for applications such as monitoring external
+   traffic/road conditions.  Further, we can build vehicle-to-
+   infrastructure (V2I) and vehicle-to-vehicle (V2V) communications that
+   enable many more applications for safety, convenience, entertainment,
+   etc.  The challenges for smart transportation include fast
+   data/device/service discovery and association, efficient
+   communications with mobility, trustworthy data collection and
+   exchange.
+
+   Smart transportation [13][14] faces the following challenges that are
+   hard to address with IP-based overlay solutions: (1) mobility: a
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 12]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   smart transportation system must deal with a large number of mobile
+   nodes; (2) real-time and reliability: a smart transportation system
+   must be able to operate on real-time and remain resilient in the
+   presence of failures; (3) in-network computing/filtering: a smart
+   transportation system will benefit from in-network computing/
+   filtering as such operations can reduce the end-to-end latency; (4)
+   inter-operatibility: a smart transportation system must operate with
+   heterogeneous device and protocols; (5) security: a smart
+   transportation system must be resilient to all kinds of malicious
+   attacks.
+
+4.5.  Smart Healthcare
+
+   As more embedded medical devices, or devices that can monitor human
+   health become increasingly deployed, smart healthcare is becoming a
+   viable alternative to traditional healthcare solutions [15].  For
+   smart health applications, a unified IoT platform is critical for
+   sharing data and enabling timely actuations.  The challenges in smart
+   healthcare include real-time interactions, high reliability, short
+   communication latencies, trustworthy, security and privacy.
+
+   Smart healthcare [15][16]  faces the following challenges that are
+   hard to address with IP-based overlay solutions: (1) real-time and
+   reliability: a smart healthcare system must be able to operate on
+   real-time and remain resilient in the presence of failures; (2)
+   inter-operatibility: a smart healthcare system must operate with
+   heterogeneous device and protocols; (3) security: a smart healthcare
+   system must be resilient to all kinds of malicious attacks.
+
+5.  ICN Challenges for IoT
+
+   ICN integrates content/service/host abstraction, name-based routing,
+   compute, caching/storage as part of the network infrastructure
+   connecting consumers and services which meets most of the
+   requirements discussed above; however IoT requires special
+   considerations given heterogeniety of devices and interfaces such as
+   for constrained networking [5], data processing, and content
+   distribution models to meet specific application requirements which
+   we identify as challenges in this section.
+
+5.1.  Naming
+
+   Information resources generated by sensors is expected to be locally
+   and/or globally accessible subjected to access policies and privacy
+   requirements.  Hence identifying resources in a local or global
+   context applying human readeable, secure, or hybrid means is the
+   first step.  Further considerations include self-configuration
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 13]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   requirements, vendor assigned identifiers, constrained devices, and
+   heterogenous environments.  [TBD]
+
+5.2.  Caching
+
+   Distributed caching helps to multicast data to consumers in large
+   scale, but its usage differs in constrained and infrastructure part
+   of the network.  Caching in constrained networks is limited to small
+   amounts in the order of 10KB.  Distributed caching strategies could
+   coordinate multiple devices to achieve in-network caching of all the
+   chunks for medium-sized content (i.e., of size in the order of n
+   kBytes, where n is the number of nodes in the network).  Second, in
+   contrast to simple sensor scenarios with a single sink, the IoT
+   envisions multiple consumers (e.g. crowd computing).  On the
+   infrastructure end caching can be centralized at given service points
+   to ensure policy enforcement, or distributed assuming similar policy
+   control can be enforced.  [TBD]
+
+5.3.  Name resolution
+
+   Inter-connecting and establishing reacheability to these numerous IoT
+   entities requires a scalable name resolution system considering
+   several dynamic factors like mobility of end points, service
+   replication, failure or migration.  The objective is to achieve
+   scalable name resolution handling static and dynamic ICN entities
+   with low compelexity and control overhead.  [TBD]
+
+5.4.  Contextual Communication
+
+   Contextualization through metadata in ICN control or application
+   payload allows IoT applications to adapt to different environments.
+   This enables intelligent networks which are self-configurable and
+   enable intelligent networking among consumers and producers.  [TBD]
+
+5.5.  Routing and Forwarding
+
+   The ICN router state required to guide consumers interests to the
+   producer(s) or data-response to the consumer should be low.  While
+   the unconstrained network can leverage a combination of name-based or
+   location based forwarding, resource constrained networks require
+   simple routing and forward logic [5].  [TBD]
+
+5.6.  In-network Computing
+
+   Processing sensed data in IoT applications is critical as the data is
+   noisy as is, hence integrating computing services into an ICN
+   infrastructure is important.  [TBD]
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 14]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+5.7.  Energy Efficiency
+
+   This is of critical importance to constrained network segments where
+   the battery life is expected to in the order of years, this requires
+   ICN control, forwarding overhead to be as low as possible.  [TBD]
+   [TBD]
+
+5.8.  Security and Privacy
+
+   This is crucial to IoT applications in general considering the use
+   case sceanrios discussed in Section 4.  Though ICN includes data-
+   centric security features the mechanisms have to be generic enough to
+   satisfy multiplicity of policy requirments for different
+   applications.  [TBD]
+
+6.  Informative References
+
+   [1]        Cisco System Inc., CISCO., "Cisco visual networking index:
+              Global mobile data traffic forecast update.", 2009-2014.
+
+   [2]        Mohsen, D. and M. Michael, "Smart home mobile RFID-based
+              Internet-of-Things systems and services.", International
+              Conference on Internet-of-Things systems and services. ,
+              2008.
+
+   [3]        Biswas, T., Chakraborti, A., Ravindran, R., Zhang, X., and
+              GQ. Wang, "Contextualized information-centric home
+              network.", Proceedings of the ACM SIGGCOMM , 2013.
+
+   [4]        Zhu, Q., Wang, R., Chen, Q., and Y. Liu, "Survey of
+              Internet of things: Vision, applications and research
+              challenges.", Vision, applications and research
+              challenges. Ad Hoc Networks , 2012.
+
+   [5]        Baccelli, E., Mehlis, C., Hahm, O., Schmidt, T., and M.
+              Wahlisch, "Information Centric Networking in the
+              IoT:Experiments with NDN in the Wild.",
+              http://arxiv.org/abs/1406.6608 , 2014.
+
+   [6]        Zhu, Q., Wang, R., Chen, Q., Liu, Y., and W. Qin, "Iot
+              gateway: Bridgingwireless sensor networks into internet of
+              things.", Embedded and Ubiquitous Computing (EUC), 2010
+              IEEE/IFIP 8th International Conference on. IEEE, 2010 ,
+              2010.
+
+   [7]        Huang, R., "Smart Campus: The Developing Trends of Digital
+              Campus.", Open Education Research 4 (2012): 004 , 2012.
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 15]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   [8]        Piro, R., Cianci, I., Grieco, L., Boggia, G., and P.
+              Camarda, "Information Centric Services in Smart Cities.",
+              Elsevier Journal of Systems and Software , 2014.
+
+   [9]        Grieco, L., Alaya, M., Monteil, T., and K. Drira,
+              "Architecting Information Centric ETSI-M2M systems.",
+              Proc. of IEEE PerCom (to appear as work in progress paper)
+              , 2014.
+
+   [10]       Dietrich, D., Bruckner, D., Zucker, G., and P. Palensky,
+              "Communication and computation in buildings: A short
+              introduction and overview.", IEEE Transaction of
+              Industrial Electronics , 2010.
+
+   [11]       Zhang, Y. and R. Yu, "Research on the architecture and key
+              technology of Internet of Things (IoT) applied on smart
+              grid.", Advances in Energy Engineering (ICAEE), 2010
+              International Conference on. IEEE , 2010.
+
+   [12]       Zhang, Y., Yu, R., Nekovee, M., Liu, Y., Xie, S., and S.
+              Gjessing, "Cognitive machine-to-machine communications:
+              visions and potentials for the smart grid.", IEEE Network
+              , 2012.
+
+   [13]       Hong, Z., Liu, B., and D. Wang, "Design and Research of
+              Urban Intelligent Transportation System Based on the
+              Internet of Things.", Internet of Things. Springer Berlin
+              Heidelberg , 2012.
+
+   [14]       Min, Z., Yu, T., and G. Zhai, "Smart Transport System
+              Based on the Internet of Things.", Applied mechanics and
+              materials , 2011.
+
+   [15]       Min, Z., Yu, T., Zhai, G., Zhai, G., and G. Zhai, "The
+              internet of things for ambient assisted living.",
+              Information Technology: New Generations (ITNG), 2010
+              Seventh International Conference on , 2010.
+
+   [16]       Reijo, S., Abie, H., and M. Sihvonen, "Towards metrics-
+              driven adaptive security management in E-health IoT
+              applications.", Proceedings of the 7th International
+              Conference on Body Area Networks. ICST (Institute for
+              Computer Sciences, Social-Informatics and
+              Telecommunications Engineering), , 2012.
+
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 16]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   [17]       Yan, Y., Qian, Y., Sharif, H., and D. Tipper, "A Survey on
+              Smart Grid Communication Infrastructures: Motivations,
+              Requirements and Challenges.", IEEE Communications Surveys
+              and Tutorials , 2013.
+
+   [18]       Shafig, M., Ji, L., Liu, A., Pang, J., and J.  Wang, "A
+              first look at cellular machine-to-machine traffic: large
+              scale measurement and characterization.", Proceedings of
+              the ACM Sigmetrics , 2012.
+
+   [19]       The European Telecommunications Standards InstituteS,
+              ETSI., "http://www.etsi.org/.", 1988.
+
+   [20]       Global Intiative for M2M Standardization, oneM2M.,
+              "http://www.onem2m.org/.", 2012.
+
+   [21]       Constrained RESTful Environments, CoRE.,
+              "https://datatracker.ietf.org/wg/core/charter/.", 2013.
+
+   [22]       Ghodsi, A., Shenker, S., Koponen, T., Singla, A.,
+              Raghavan, B., and J. Wilcox, "Information-Centric
+              Networking: Seeing the Forest of the Trees.", Hot Topics
+              in Networking , 2011.
+
+   [23]       Dong, L., Zhang, Y., and D. Raychaudhuri, "Enhance Content
+              Broadcast Efficiency in Routers with Integrated Caching.",
+              Proceedings of the IEEE Symposium on Computers and
+              Communications (ISCC) , 2011.
+
+   [24]       NSF FIA project, MobilityFirst.,
+              "http://www.nets-fia.net/", 2010.
+
+   [25]       Kim, B., Lee, S., Lee, Y., Hwang, I., and Y. Rhee,
+              "Mobiiscape: Middleware Support for Scalable Mobility
+              Pattern Monitoring of Moving Objects in a Large-Scale
+              City.", 2011.
+
+Authors' Addresses
+
+   Prof.Yanyong Zhang
+   WINLAB, Rutgers University
+   671, U.S 1
+   North Brunswick, NJ  08902
+   USA
+
+   Email: yyzhang@winlab.rutgers.edu
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 17]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   Prof. Dipankar Raychadhuri
+   WINLAB, Rutgers University
+   671, U.S 1
+   North Brunswick, NJ  08902
+   USA
+
+   Email: ray@winlab.rutgers.edu
+
+
+   Luigi Alfredo Grieco
+   Politecnico di Bari (DEI)
+   671, U.S 1
+   Via Orabona 4, Bari  70125
+   Italy
+
+   Email: alfredo.grieco@poliba.it
+
+
+   Emmanuel Baccelli
+   INRIA
+   Room 148, Takustrasse 9
+   Berlin  14195
+   France
+
+   Phone: +33-169-335-511
+   Email: Emmanuel.Baccelli@inria.fr
+
+
+   Jeff Burke
+   UCLA
+
+   Email: jburke@ucla.edu
+
+
+   Ravi Ravindran
+   Huawei Technologies
+   2330 Central Expressway
+   Santa Clara, CA  95050
+   USA
+
+   Email: ravi.ravindran@huawei.com
+
+
+
+
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 18]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   Guoqiang Wang
+   Huawei Technologies
+   2330 Central Expressway
+   Santa Clara, CA  95050
+   USA
+
+   Email: gq.wang@huawei.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 19]

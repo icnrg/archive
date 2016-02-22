@@ -1,0 +1,896 @@
+
+
+
+
+ICN Research Group                                              Y. Zhang
+Internet-Draft                                            D. Raychadhuri
+Intended status: Informational                WINLAB, Rutgers University
+Expires: January 18, 2015                                      L. Grieco
+                                               Politecnico di Bari (DEI)
+                                                            R. Ravindran
+                                                                 G. Wang
+                                                     Huawei Technologies
+                                                           July 17, 2014
+
+
+                     ICN based Architecture for IoT
+                  draft-zhang-icn-iot-architecture-00
+
+Abstract
+
+   Internet of Things (IoT) promises to connect billions of objects to
+   Internet.  After deploying many stand-alone IoT systems in different
+   domains, the current trend is to develop a unified de-fragmented IoT
+   platform so that objects can be made accessible to applications
+   across organizations and domains.  Towards this goal, quite a few
+   proposals have been made to build a unified IoT platform as an
+   overlay on top of today's Internet.  Such overlay solutions, however,
+   are inadequate to address the important challenges posed by a unified
+   IoT system, especially in terms of mobility, scalability, and
+   communication reliability, due to the inherent inefficiencies of the
+   current Internet.  To address this problem, we propose to build a
+   unified IoT platform based on the Information Centric Network (ICN)
+   architecture, which we call ICN-IoT.  ICN-IoT leverages the salient
+   features of ICN, and thus provides seamless mobility support,
+   scalability, and efficient content and service delivery.
+
+   This draft begins by motivating the need for an unified ICN-IoT
+   platform to connect heterogenous IoT systems.  We then propose an
+   ICN-IoT architecture and middleware components and discuss how it
+   supports efficient data discovery, data processing and data
+   distribution.  Finally, we show that ICN-IoT efficiently supports
+   context-based scenarios, which are very common for many IoT
+   applications.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 1]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on January 18, 2015.
+
+Copyright Notice
+
+   Copyright (c) 2014 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  ICN-Centric Unified IoT Platform  . . . . . . . . . . . . . .   2
+     1.1.  Strengths of ICN-IoT  . . . . . . . . . . . . . . . . . .   3
+   2.  Proposed ICN-IoT Architecture . . . . . . . . . . . . . . . .   5
+     2.1.  ICN-IoT Scenario  . . . . . . . . . . . . . . . . . . . .   8
+   3.  ICN-IoT Deployment  . . . . . . . . . . . . . . . . . . . . .  12
+     3.1.  Overlay Mode  . . . . . . . . . . . . . . . . . . . . . .  12
+   4.  Informative References  . . . . . . . . . . . . . . . . . . .  13
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  15
+
+1.  ICN-Centric Unified IoT Platform
+
+   In recent years, the current Internet has become inefficient in
+   supporting rapidly emerging Internet use cases, e.g., mobility,
+   content retrieval, IoT, context, etc.  As a result, Information
+   Centric Networking has been proposed as a future Internet design to
+   address these inefficiencies.  ICN has the following main features:
+   (1) it identifies a network object (including a mobile device, a
+   content, a service, or a context) by its name instead of its IP
+   address, (2) a hybrid name/address routing, and (3) a delay-tolerant
+   transport.  These features make it easy to realize many in-network
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 2]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   functions, such as mobility support, multicasting, content caching,
+   cloud/edge computing and security.
+
+   Considering these salient features of ICN, we propose to build a
+   unified IoT platform using ICN, in which the overlay IoT services are
+   only needed for administrative purposes, while the publishing,
+   discovery, and delivery of the IoT data/services is directly
+   implemented within the ICN network.  Figure 1 shows the proposed ICN-
+   centric IoT approach, which is centered around the ICN network
+   instead of today's Internet.
+
+
+               ______________   __________   __________
+              |IoT Smart Home| |IoT Smart | |IoT Smart |
+              |Management    | |Transport | |Healthcare|
+              |______________| |Management| |Management|
+                   \           |__________| |__________|
+                    \               |             /
+                     \ _____________|___________ /
+                      {                         }
+                      {                         }
+                      {           ICN           }
+                      {                         }
+                      {_________________________}
+                        /           |         \
+                       /            |          \
+             _________/     ________|______   __\_____________
+            {          }   {               } {                }
+            {Smart home}   {Smart Transport} {Smart Healthcare}
+            {__________}   {_______________} {________________}
+              |      |          |      |         |          |
+           ___|__  __|___     __|__  __|__   ____|____  ____|____
+          |Home-1||Home-2|   |Car-1||Car-2| |Medical  ||Medcical |
+          |______||______|   |_____||_____| |Devices-1||Devices-2|
+                                            |_________||_________|
+
+
+         Figure 1: The proposed ICN-centric IoT unified platform.
+
+
+1.1.  Strengths of ICN-IoT
+
+   Our proposed ICN-IoT is a network-layer IoT solution, which can
+   satisfy the requirements of the open IoT platform discussed in [5]:
+
+   o  Naming.  In ICN-IoT, we assign a unique name to an IoT object, an
+      IoT service, or even a context.  These names are persistent
+      throughout their scopes.
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 3]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   o  Scalability.  In ICN-IoT, the name resolution is performed at the
+      network layer, distributed within the entire network.  Thus, it
+      can achieve high degree of scalability exploiting features like
+      content locality, local computing, and multicasting.
+
+   o  Resource constraints.  In ICN-IoT, mobile devices only need to
+      upload their data to the gateway when some applications subscribe
+      to the data.  Thus, it offers a resource-efficient solution.
+
+   o  Local traffic Pattern.  In ICN-IoT, we can easily cache data/
+      services in the network, facilitating local communications.
+
+   o  Context-aware communications.  In ICN-IoT, we assign unique names
+      to contexts, which are then mapped to the devices that are
+      involved in the context by the name resolution service.  The
+      support of multicast can greatly ease the communications to these
+      devices.
+
+   o  Seamless mobility handling.  In ICN-IoT, ICN's name resolution
+      layer allows multiple levels of mobility relying on receiver-
+      oriented nature for self-recovery for consumers, to multi-casting
+      and late-binding techniques to realize seamless mobility support
+      of producing nodes.
+
+   o  Data storage.  In ICN-IoT, data are stored locally, either by the
+      mobile device or by the gateway nodes or at service points.  We
+      also implement in-network storage/caching [21] to speed up data
+      delivery.
+
+   o  Security and privacy.  In ICN-IoT, secure binding between names
+      and content instead of IP addresses to identify devices/data/
+      services, is inherently more secure allowing pervasive caching.
+
+   o  Communication reliability.  In ICN-IoT, we support seamless
+      mobility, which in turn guarantees reliable communications.
+
+   o  Ad hoc and infrastructure mode.  ICN-IoT support both ad-hoc and
+      infrastructure modes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 4]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+              +-[Host]-[Sensors]-[Content]-[Context]-+
+              |Name Assignment Service(Semantic->UID)|
+              +======================================+
+              | Delay Tolerant Network(DTN)Transport |--+
+              |            (Storage-aware)           |  |
+              +======================================+  |
+              |      Hybrid UID/Address Routing      |--|--+
+              +======================================+  |  |
+          +---|Name Resolution Service(UID->Address) |  |  |
+          |   +======================================+  |  |
+          |    _________                    _________   |  |
+          |   [ Routing ]..................[ Routing ]--+  |
+          |   +=========+..................+=========+     |
+          |   [ Storage ]..................[ Storage ]     |
+          |   +=========+..................+=========+     |
+          |   [Computing]..................[Computing]     |
+          +---[  Plane  ]..................[  Plane  ]-----+
+              +---------+                  +---------+
+               ICN Router                   ICN Router
+
+
+               Figure 2: An Example ICN-IoT Architecture
+
+
+2.  Proposed ICN-IoT Architecture
+
+   The design of ICN-IoT is to support a scalable, unified IoT
+   architecture with tens of billions of devices.  The ICN-IoT
+   introduces a unique identifier (UID) for every network object,
+   separated from its dynamic access network locations represented by
+   network addresses.  The separation of naming and addressing allows
+   ICN-IoT to support identity based routing, which provides seamless
+   mobility support.  Multicast and anycast can then become a native
+   network capability since a UID can be bound to multiple addresses.
+
+   Figure 2 depicts the example ICN-IoT core network architecture.  The
+   assumption is that ICN routers have a sizeable storage and a
+   computing plane in addition to the basic routing function.  The
+   proposed ICN-IoT network includes the following three basic services:
+
+   o  Name Resolution Service (NRS): A core ICN-IoT function that
+      maintains mappings between UID to network address (NA).  This can
+      be a logically centralized service distributed on all ICN routers.
+
+   o  Hybrid UID/network address routing: An ICN router makes routing
+      decisions for UID identified data blocks.  It uses NRS to find the
+      network address(s) for a UID.  In case an explicit network address
+      cannot be obtained from NRS, it may route based on intermediate
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 5]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+      network address and use "late-biding" from UID to its actual
+      network address.
+
+   o  Delay-tolerant network (DTN) transport: An ICN router can deliver
+      UID-only identified data blocks from/to a networked object.  The
+      transport performs a cache and forward (CNF) style, hop-by-hop
+      delivery.  The data block is cached in router storage and forward
+      to next hop based on routing decisions.
+
+   o  In addition to baseline services, ICN-IoT assumes there is a name
+      assignment service (NAS) chosen by the owner of a networked
+      object.  Through the NAS, the owner assigns and publishes a UID
+      with its semantic descriptions for his networked object to a
+      searchable space, such as google or semantic Linked-data space
+      [1].
+
+   In Figure 3, we summarize the ICN-IoT milddleware into three service
+   categories: 1) Data Discovery Service, 2) Data Processing Service and
+   3) Data (Re)Distribution Service.  These services span both in Ad hoc
+   and Infrastructure settings.
+
+   Data Discovery Service: Discovery service allows applications finding
+   things/services/data through certain semantic / syntactic resolution.
+   In ICN-IoT, each data/service has both a user-readable name with
+   certain semantic structures and unique identifiers (UID).  Based on
+   the human readable names, the data discovery service can help
+   discover the requested data/services.
+
+   Data Processing Service: The data processing service generates new
+   knowledge or information through applying knowledge and/or rules on
+   existing data.  Data processing can be distributed based on its scope
+   and relevance as in the local node, versus edge service routers, or
+   in data centers.  Data processing procedures are often defined by the
+   applications/services.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 6]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+              _______________________________________________
+    Things   |                 IoT MIDDLEWARE                | APPS/
+    ________ |            (Ad-hoc/Infrastructure)            | Services
+   |Sensors ||              ___________________              | ________
+   |--------||      +------|Discovery Service  |-----+       ||APP1    |
+   |________|| _____|_____ |(Semantic/Syntactic| ____|______ ||--------|
+   | Tags   |||Resource   ||Resolution)        ||Application|||________|
+   |--------|||Abstraction|+-------------------+|Abstraction|||APP2    |
+   |________||+-----------+|Data Analysis      |+-----------+||--------|
+   |Feeds   ||     |       |Event Detection    |      |      ||________|
+   |--------||     |       |Context Reasoning  |      |      ||Service1|
+   |________||     |       |Security/privacy   |      |      ||--------|
+   |Actuator||     |       |control            |      |      ||________|
+   |--------||     |       |(Knowledge,Rules)  |      |      ||Service2|
+   |________||     |       +-------------------+      |      ||--------|
+   |Database||     |       |(Re)-distribution  |      |      ||________|
+   +--------+|     |       |Service(CDN,Cloud) |      |      |     |
+         |   |     |       +-------------------+      |      |     |
+         |   +-----+--------|-----------------|-------+------+     |
+         |         |        |                 |       |            |
+         |         |        |                 |       |            |
+         |   +-----------------------------------------------+     |
+         +---|        Information Centric Network(ICN)       |-----+
+             +-----------------------------------------------+
+
+               Figure 3: The ICN-IoT Service Middleware
+
+
+   Data Re-distribution Service: The (re)distribution service delivers
+   data from their sources to different locations for better
+   accessibility.  These services will be directly supported by the ICN.
+   Firstly, ICN can cache data/content on forwarding ICN routers, and
+   secondly, these routers will be added to the NRS service so that
+   requests for the cached data/content can be forwarded to them, thus
+   reducing the data/content retrieval latencies.
+
+   Figure 3 shows how the ICN-IoT middleware services (identified in
+   Figure 2) integrated into the ICN infrastructure.  The components of
+   the IoT middleware can be described with respect the services
+   identified before.
+
+   o  Realizing Data discovery Service.  Two tasks are involved in
+      achieving this.  First is a way to name services/content/devices
+      of interest within the IoT application scope.  Each network entity
+      that is registered at the Name Assignment Service (NAS) has both a
+      human readable name and a unique identifier (UID).  The human
+      readable name includes semantic key words that characterize the
+      entity.  Once the entities are named, applications based on its
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 7]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+      policy requirements make it accessible considering access control
+      policies.  To enable accessibility a discovery function is
+      required, which is enabled through NAS.  Figure 3 shows an example
+      with sensor SID and service CID.  Both SID and CID are published
+      to the searchable name space through NAS, which can be efficiently
+      discovered later by the applications.
+
+   o  Realizing Data processing Service.  ICN-IoT uses the in-network
+      storage and computing capability to cache and execute data
+      processing service, such as a context reasoning service,
+      traditionally implemented on overlay servers.  Having the context
+      reasoning service within the network, however, requires additional
+      computing capabilities offered by routers or separate computing
+      facilities in the network.  In Figure 3, the service, identified
+      by CID, is cached and executed on an ICN router.
+
+   o  Realizing Data (re)distribution Service.  ICN-IoT performs
+      distribution or re-distribution of IoT data and service through
+      its native support of in-network caching and multicast based on
+      identity based routing.
+
+2.1.  ICN-IoT Scenario
+
+   We will use a context-aware IoT application as an example from
+   UbiCab[23] to demonstrate how IoT middleware service is enabled
+   inside the proposed ICN-IoT core network.  This example is based on
+   MobilityFirst architecture [22] which is based on secured names and
+   off-path name resolution infrastructure.
+
+   The example is stated as: "James walks on NYC streets and wants to
+   find an empty cab closest to his location".  In this example, we
+   assume that James and taxi drivers have sensors on their phones,
+   providing GPS location information as data.  The context of this
+   application is the relative locations of James and taxi drivers.  A
+   context service, as an IoT middleware, is needed to bridge sensors
+   (providing GPS location) and the application (phone call program)
+   automatically.
+
+   We use a linked-data inspired approach to implement the middleware
+   service for this location aware context.  First, a company
+   GPSlocation.com offers this service at http://GPSlocation.com/
+   nearbyCab, implemented in an RDF graph shown in Figure 5.  This
+   context service has two attributes to describe itself, tagged as cab
+   and location.  A taxi driver can query this RDF graph and joins as a
+   member of the service by adding a link to its own URI
+   http://NYCcab.com/cab1 in the RDF graph with a predicate "a:member".
+   The sensor data, taxi driver's GPS location, is linked to taxi
+   driver's URI with a predicate "a:location" and the value is updated
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 8]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   by his phone periodically.  he database containing this RDF graph
+   must be searchable by users in a searchable space, which we refer as
+   IoT resource space in Figure 4.
+
+
+                           ______________                    ______
+                          {              }             +SID-(Sensor)
+   +--------------------->{IoT Name Space}             |     ------
+   |    +---------------->{______________}<--------------------+
+   |    |                        |                     |       |
+   |Lookup  _____________________|_____________________|_      |
+   |Service|Add-on Protocols(Name Assignment Service,    |  Publish
+   |   |   |                   Caching))                 |  (CID)
+   | __|__ +=============================================+     |
+   ||Apps ||Baseline ICN Protocols(Transport,Routing,Name|     |
+   ||(ICN ||               Resolution)                   |     |
+   ||Host)||_____________________________________________|  ___|_______
+   ||_____|                    |                           |Overlay IoT|
+   |   |  Get      ____________|____________               |Middleware |
+   |   +--CID-----{                         }              |Service    |
+   |    _______   {     ICN Core Network    }----CID------>|(ICN Host) |
+   |   |Readers|  {_________________________}              |___________|
+   +---|(ICN   |       |         |
+       |Host)  |     Send   _____|_______
+       +=======+     (SID) |Caching IoT  |
+       {Local  }       |   |Middleware   |
+       {IoT    }-------+   |Service      |
+       {Network}           |(ICN Storage)|
+       {_______}           |_____________|
+
+                Figure 4: ICN-IoT Data and Services
+
+
+
+   |8438435780327523478532,4530|   a:member---->|http://NYCcab.com/cab1|
+               UID                 |
+                |                  |a:member--->|http://NYCcab.com/cab2|
+                |                  ||               |              |
+   |http://GPSLocation.com/nearbtCab|             |UID_2|     a:location
+   |Cab|        |          |Location|-a:attribute                  |
+            a:Pubkey            |           +---->|Cab|       |GPSvalue|
+                |               |                   |
+                |               |                   |
+   |8438435780327523478532|   a:attribute-->|Location|--->Linked-data
+
+             Figure 5: Location context service in RDF
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015                [Page 9]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   In ICN-IoT, we also add an additional 3-tuple or triple in the RDF
+   graph with a predicate "UID".  CID is assigned to the context service
+   and UID_2 is assigned to cab2.
+
+   This context service can also run as an overlay to the Internet.
+   Taxi drivers and passengers can directly call the URI of the context
+   service to join the membership and get a nearby cab, respectively.
+   As an Internet overlay, the location context service is subject to
+   longer delay due to demands are overloaded or unbalanced.
+
+   In this example, since the context service is implemented using an
+   RDF graph, it can be cached on ICN routers in a similar way to
+   caching content.  This RDF graph can be updated by taxi drivers by
+   joining membership, current GPS location etc, since the context
+   service is UID identified it can be routed efficiently by the ICN
+   routers.  The utility of such information is determined by specific
+   application requirements.
+
+   The application scenario is comprised of the following steps,
+   illustrated by Figure 8.
+
+   o  Name Assignment.  The owner of the context service publishes its
+      CID and the service description (RDF graph of Figure 5) through
+      ICN-IoT NAS function, running on both service host and routers, to
+      a searchable Link-data space.
+
+   o  NRS Update.  When the context service connects to the ICN network,
+      the access router calls NRS update to provide a UID to network
+      address mapping.
+
+   o  Service Discovery.  Taxi driver or James can find CID through an
+      RDF query requesting services with tags "location" and "cab".
+
+   o  Service Request.  Taxi driver makes a service request to CID with
+      an RDF query to join the service membership.
+
+   o  Routing and GNRS Lookup.  The service request toward CID is routed
+      to the NA_c, obtained from a NRS lookup.
+
+   o  Service Request Redirection.  James makes a service request to CID
+      with an RDF query to match GPS location to a nearby taxi.  James'
+      request to CID is redirected to UID_2, the driver of cab2.
+
+   Note that in this example, no CDN overlay is needed to support multi-
+   homing, multicasting for a location context service because these are
+   embedded in the ICN core network.
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 10]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   As usual, the benefit of caching is more significant for location
+   dependent services.  In our example, it is best to have the
+   middleware service being offered at a server close to taxi drivers
+   and passengers so that the traffic can be localized with lower
+   latency.
+
+
+
+
+
+        __________             _______     _______
+       {          }           |Caching|   |NRS    |
+       {RDF graphs}-RDF query-|Service|   |Service|
+       {__________}           |_______|   |_______|
+                                  ^           |
+                                  |          NRS
+                               Caching     Lookup
+                       +----------+     +-----+
+                       |                |
+                       |                |  Name Assignment
+    _______ Service   _|________________|     NRS       _______________
+   |Taxi   |Discovery{ |                 }   Update    |               |
+   |Drivers|-------->{ICN-IoT CoreNetwork}<------------|GPSLocation.com|
+   |_______|Request  {_|_________________}-+           |_______________|
+                       ^    |              |
+    _________ Service  |   NAS             |
+   |Passenger|Discovery| Discovery         |
+   |James    |---------+    |   _______    |________________
+   |_________|              |  |NAS    |  {                 }
+                            +->|Service|  {Linked-Data Space}
+                               |_______|  {_________________}
+                                   |              ^
+                                   |              |
+                                   +---RDF Query--+
+
+               Figure 8: Location context application scenario
+
+
+   Traditionally, a service provider has to buy edge computing service
+   from content distribution network (CDN); recently, cloud computing
+   offers another alternative to deploy a distributed service.  The
+   native support of caching in ICN provides with the ability to
+   distribute a service directly through core network routers.  This
+   option may not be suitable for heavyweight service requiring a high
+   end web server.  Nevertheless, it could be particularly useful for
+   lightweight IoT middleware service.  As shown in our example, when
+   the context service is implemented in an RDF graph, caching a service
+   is as simple as caching a data and service processing is as simple as
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 11]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   a database query.  The algorithms behind cache replacement can also
+   be similar to what for data caching.
+
+   Once, for example, the service CID is cached, any request to CID is
+   intercepted by the ICN router.  In our example, when it is a request
+   from taxi driver, it must contain an RDF query requesting either join
+   membership or an updated GPS location.  The computing layer of ICN
+   router runs a SPARQL engine to interpret the RDF query and makes a
+   corresponding database operation.  When it is a request from James, a
+   passenger, it must contain an RDF query containing its own GPS
+   location and looking for the ID of a taxi with a GPS location nearby.
+
+   Another benefit of ICN caching is that there is no need for end-to-
+   end connectivity between the requester and the location context
+   server, if the service is currently cached in an accessible ICN
+   router.  This is especially useful for ad-hoc or DTN use cases, where
+   the application network can be dynamically formed and isolated for a
+   period of time.
+
+   This UbiCab example has low data rate.  Next imagine a context
+   service requires high data rate, for example, a person wants to see
+   snapshots of the street nearby.  And these snapshots are uploaded by
+   the people on the street.  Assuming every access network can get
+   enough number of people uploading pictures, it is best for the
+   network operator to cache the pictures as close to edge as possible.
+
+   Through this location context service example, we can see ICN-IoT
+   offers significant native supports for IoT data and services to be
+   visible, routable, cacheable and executable in the core network of
+   future Internet architecture.
+
+3.  ICN-IoT Deployment
+
+3.1.  Overlay Mode
+
+   As discussed in [5], a host-centric overlay is not able to match the
+   inherent information centric nature of IoT systems.  As a
+   consequence, this class of solution cannot effectively fulfill
+   requirements presented in [5].  At the same time, the state of the
+   art is currently investigating ICN-overlays in M2M systems in order
+   to ensure interoperability with IP networks [6][7].  As a matter of
+   fact, it is unlike that IP will be abruptly switched off, so that
+   novel ICN-IoT architectures should be able to provide their
+   functionalities also in those environments where IP and ICN routers
+   coexist.  In this direction, a noticeable example is provided in [7],
+   demonstrating that ICN primitives can increase the scalability, fault
+   tolerance, and flexibility of current host centric IoT-overlays.
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 12]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+4.  Informative References
+
+   [1]        Cisco System Inc., CISCO., "Cisco visual networking index:
+              Global mobile data traffic forecast update.", 2009-2014.
+
+   [2]        Mohsen, D. and M. Michael, "Smart home mobile RFID-based
+              Internet-of-Things systems and services.", International
+              Conference on Internet-of-Things systems and services. ,
+              2008.
+
+   [3]        Zhu, Q., Wang, R., Chen, Q., Liu, Y., and W. Qin, "Iot
+              gateway: Bridgingwireless sensor networks into internet of
+              things.", Embedded and Ubiquitous Computing (EUC), 2010
+              IEEE/IFIP 8th International Conference on. IEEE, 2010 ,
+              2010.
+
+   [4]        Huang, R., "Smart Campus: The Developing Trends of Digital
+              Campus.", Open Education Research 4 (2012): 004 , 2012.
+
+   [5]        Zhang, Y., Grieco, L., Baccelli, E., Burke, J., Ravindran,
+              R., and G. Wang, "ICN based Architecture for IoT -
+              Requirements and Challenges.", draft-zhang-icn-iot-
+              challenges-00.txt , 2014.
+
+   [6]        Piro, R., Cianci, I., Grieco, L., Boggia, G., and P.
+              Camarda, "Information Centric Services in Smart Cities.",
+              Elsevier Journal of Systems and Software , 2014.
+
+   [7]        Grieco, L., Alaya, M., Monteil, T., and K. Drira,
+              "Architecting Information Centric ETSI-M2M systems.",
+              Proc. of IEEE PerCom (to appear as work in progress paper)
+              , 2014.
+
+   [8]        Dietrich, D., Bruckner, D., Zucker, G., and P. Palensky,
+              "Communication and computation in buildings: A short
+              introduction and overview.", IEEE Transaction of
+              Industrial Electronics , 2010.
+
+   [9]        Zhang, Y. and R. Yu, "Research on the architecture and key
+              technology of Internet of Things (IoT) applied on smart
+              grid.", Advances in Energy Engineering (ICAEE), 2010
+              International Conference on. IEEE , 2010.
+
+   [10]       Zhang, Y., Yu, R., Nekovee, M., Liu, Y., Xie, S., and S.
+              Gjessing, "Cognitive machine-to-machine communications:
+              visions and potentials for the smart grid.", IEEE Network
+              , 2012.
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 13]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   [11]       Hong, Z., Liu, B., and D. Wang, "Design and Research of
+              Urban Intelligent Transportation System Based on the
+              Internet of Things.", Internet of Things. Springer Berlin
+              Heidelberg , 2012.
+
+   [12]       Min, Z., Yu, T., and G. Zhai, "Smart Transport System
+              Based on the Internet of Things.", Applied mechanics and
+              materials , 2011.
+
+   [13]       Min, Z., Yu, T., Zhai, G., Zhai, G., and G. Zhai, "The
+              internet of things for ambient assisted living.",
+              Information Technology: New Generations (ITNG), 2010
+              Seventh International Conference on , 2010.
+
+   [14]       Reijo, S., Abie, H., and M. Sihvonen, "Towards metrics-
+              driven adaptive security management in E-health IoT
+              applications.", Proceedings of the 7th International
+              Conference on Body Area Networks. ICST (Institute for
+              Computer Sciences, Social-Informatics and
+              Telecommunications Engineering), , 2012.
+
+   [15]       Yan, Y., Qian, Y., Sharif, H., and D. Tipper, "A Survey on
+              Smart Grid Communication Infrastructures: Motivations,
+              Requirements and Challenges.", IEEE Communications Surveys
+              and Tutorials , 2013.
+
+   [16]       Shafig, M., Ji, L., Liu, A., Pang, J., and J.  Wang, "A
+              first look at cellular machine-to-machine traffic: large
+              scale measurement and characterization.", Proceedings of
+              the ACM Sigmetrics , 2012.
+
+   [17]       The European Telecommunications Standards InstituteS,
+              ETSI., "http://www.etsi.org/.", 1988.
+
+   [18]       Global Intiative for M2M Standardization, oneM2M.,
+              "http://www.onem2m.org/.", 2012.
+
+   [19]       Constrained RESTful Environments, CoRE.,
+              "https://datatracker.ietf.org/wg/core/charter/.", 2013.
+
+   [20]       Ghodsi, A., Shenker, S., Koponen, T., Singla, A.,
+              Raghavan, B., and J. Wilcox, "Information-Centric
+              Networking: Seeing the Forest of the Trees.", Hot Topics
+              in Networking , 2011.
+
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 14]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   [21]       Dong, L., Zhang, Y., and D. Raychaudhuri, "Enhance Content
+              Broadcast Efficiency in Routers with Integrated Caching.",
+              Proceedings of the IEEE Symposium on Computers and
+              Communications (ISCC) , 2011.
+
+   [22]       NSF FIA project, MobilityFirst.,
+              "http://www.nets-fia.net/", 2010.
+
+   [23]       Kim, B., Lee, S., Lee, Y., Hwang, I., and Y. Rhee,
+              "Mobiiscape: Middleware Support for Scalable Mobility
+              Pattern Monitoring of Moving Objects in a Large-Scale
+              City.", 2011.
+
+Authors' Addresses
+
+   Prof.Yanyong Zhang
+   WINLAB, Rutgers University
+   671, U.S 1
+   North Brunswick, NJ  08902
+   USA
+
+   Email: yyzhang@winlab.rutgers.edu
+
+
+   Prof. Dipankar Raychadhuri
+   WINLAB, Rutgers University
+   671, U.S 1
+   North Brunswick, NJ  08902
+   USA
+
+   Email: ray@winlab.rutgers.edu
+
+
+   Luigi Alfredo Grieco
+   Politecnico di Bari (DEI)
+   671, U.S 1
+   Via Orabona 4, Bari  70125
+   Italy
+
+   Email: alfredo.grieco@poliba.it
+
+
+
+
+
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 15]
+
+Internet-Draft       ICN based Architecture for IoT            July 2014
+
+
+   Ravi Ravindran
+   Huawei Technologies
+   2330 Central Expressway
+   Santa Clara, CA  95050
+   USA
+
+   Email: ravi.ravindran@huawei.com
+
+
+   Guoqiang Wang
+   Huawei Technologies
+   2330 Central Expressway
+   Santa Clara, CA  95050
+   USA
+
+   Email: gq.wang@huawei.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Zhang, et al.           Expires January 18, 2015               [Page 16]

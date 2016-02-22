@@ -1,0 +1,167 @@
+---+ ICN Side Meeting @ IETF-83
+
+---++ Summary
+
+The ICN side meeting at IETF-83 in Paris was attended by 53
+people. There were four 10 minutes presentations, largely focused on
+ICN caching topics, followed by a discussion on next steps towards
+forming an IRTF research group. Many people expressed interest in
+having such a group. A few people commented on specific objectives
+that could be mentioned in a charter for the group, and it was
+concluded that such objectives should be added soon so that a group
+can be formed and have its first meeting in summer 2012.
+
+---++ Organizational Details
+
+   * Organizers:
+      * Börje Ohlman <borje.ohlman@ericsson.com>
+      * Dirk Kutscher <dirk.kutscher@neclab.eu>
+   * Date: Wednesday March 28th, 11.30-12.45 (Lunch meeting)
+   * Location: Room 212/213
+   * Number of participants: 53
+   * Material: http://trac.tools.ietf.org/group/irtf/trac/wiki/icnrg 
+
+
+---++ Agenda
+
+   * "Route caching: a technique to improve the scalability of ICN" - Andrea Detti (10 min)
+   * "ICN caching feasibility and trade-offs" - Diego Perino (10 min) 
+   * "A dive into the caching performance of Content Centric Networking" - Dario Rossi (10 min) 
+   * "Information Centric Networking for Virtual Private Community (VPC)" - Myeong-Wuk Jang (10 min)
+   * Next Steps Discussion -- Lars Eggert
+
+
+---++ Detailed Notes
+
+
+---+++ Introduction (Börje Ohlman, Dirk Kutscher)
+
+   * http://trac.tools.ietf.org/group/irtf/trac/attachment/wiki/icnrg/ICNRG-sidemeeting-Paris.pdf
+   * Note well statement presented
+   * Agenda bashing: two presenters were not able to present
+
+
+---+++  "Route caching: a technique to improve the scalability of ICN" (Andrea Detti, Giacomo Morabito)
+
+
+   * http://trac.tools.ietf.org/group/irtf/trac/attachment/wiki/icnrg/RouteCachingDettiMorabitoV2.pdf
+   * Andrea Detti presenting
+   * scenario intro
+   * practical issues: routing scalability
+   * idea: just store working set of routes in the FIB, leveraging Zipf-based interest distribution
+   * Feasibility check: number of active routes in order of 10^3 - 10^4
+   * CCNx-based software has been used in testbed -- presentation has reference
+
+   * Questions
+      * Thomas Schmidt: IP traces mapped to ICN flows -- how realistic is that? Have you looked at FIB updates? Increase of FIB updates?
+         * consider TCP ACK, extract IP dest addr, re-map into domain name, obtain "flow to a name", considering /32 addresses, realistic only this specific scenario
+      * Thomas Schmidt: there are many names that map to many address (virtual hosting)
+      * Dave Oran: how do you purge stale FIB entries?
+         * have not focused on this in paper, lifetime of entry has to be quite short
+      * Dave Oran: but that is not built into your efficiency calculations?
+         * no
+
+---+++ "ICN caching feasibility and trade-offs" (Diego Perino)
+
+   * http://trac.tools.ietf.org/group/irtf/trac/attachment/wiki/icnrg/20120328_ICNRG_Perino.pdf
+   * Challenges in ICN caching
+   * packet-level has to run at high speed
+   * one infrastructure shared by many applications
+   * joint proactive content placement and reactive caching
+   * more...
+   * Feasibility -- Cache design
+   * memory access most important constraint
+   * size / access time trade-off
+   * analyzing different caching processing probabilities depending on transmission speed (access, edge, core)
+   * Storage Mangement Techniques
+   * simple cache replacement techniques
+   * static vs. dynamic storage management
+   * Dynamic: guarantee minimim amount of resource to apps
+   * Results: LRU and Storage partition (SP)
+   * Static partitioning preserves application performance and can provide guarantee to their users
+   * Dynamic management can better utilize resources while controlling application performance and only slightly increasing provider costs
+
+
+---+++ "A dive into the caching performance of Content Centric Networking" (Dario Rossi)
+
+   * http://trac.tools.ietf.org/group/irtf/trac/attachment/wiki/icnrg/ietf83-rossi-dive-ccn.pdf
+   * assumption: chunk-based ICN with interest routing and aggregation
+   * how to leverage topology/path knowledge
+   * Different forwarding policies
+   * strategies for exploiting replica location knowledge
+   * some limits for different strategies
+   * trying to explore cache neighborhood
+   * aim: find closest copy
+   * approach: parameter space exploration
+   * cache over catalog ration important
+   * interest forwarding approach might efficiency heavily
+   * proposing comparable performance measurements
+   * ccnsim advertisement, open source, c++ with omnet++
+      * http://www.infres.enst.fr/~drossi/index.php?n=Software.CcnSim
+
+
+
+---+++ "Information Centric Networking for Virtual Private Community (VPC)" (Myeong-Wuk Jang) 
+
+   * http://trac.tools.ietf.org/group/irtf/trac/attachment/wiki/icnrg/20120328_ICN%20for%20VPC_Myeong.pdf
+   * Virtual Private Community scenario (VPC)
+   * serverless, secure content sharing platform
+   * have developed routing daemon and naming conventions
+   * hierarchically naming approach
+   * "user-friendly naming"
+   * "random" number in name: hash of principal id (??)
+   * contextual name discovery
+   * routing daemon: VCA
+   * CCN dig sig scheme
+   * VPC trust model
+   * Android prototypes (phones, TVs, PCs)
+   * need to make content distribution more efficient (SK operator requirement)
+   * different services
+   * has been demoed at MWC and elsewhere
+
+---+++ Next Steps (Lars Eggert)
+
+   * had a couple of meetings now
+   * always been well-attended
+   * today: pretty broad selection of talks, time slot too short
+   * question: should be form a RG? what should it be?
+   * charter is on Wiki page
+
+   * Comments
+      * Volker: short summary of objectives
+      * Börje repeating objectives from draft charter
+      * Dave Oran: NOMEN ICNRG overlap?
+         * Why are people here and not at Infocom?
+      * Scott Brim: potential consumer, very interested, want to see RG
+      * N.N: overlap with ICN workshop seems larger, so research interest seems to be there
+      * Lixia: RG should be more than forum
+         * specific targets maybe
+         * need more focused objectives
+      * Jörg: people probably don't attend Infocom just for NOMEN without having a paper
+      * Jörg: love not to have to go to 20+ workshop, don't see risk of explosion
+         * RG would fill interesting gap of continuity
+         * workshops are normally about individual presentations of results only
+         * RG could be a place to have it more organized, may get participation from additional people
+      * Lixia: should not do same things here as in academic workshops
+      * Martin: should not have objectives for ways of running the group
+      * Jörg: best way to find answers is to try
+      * Matt: having listened to discussion, it seems what is missing is discussion about charter
+      * Lars: requested to operate on technical topics
+      * Stephen: supportive of having the RG
+         * what group exist that works precisely according to charter?
+         * maybe RRG was exception
+      * Leslie: Internet impact -- will this be answered?
+         * could be a reason to have RG
+      * Lars: there is interest -- would IRTF RG would add value?
+      * some support & some scepticim
+      * proposal: discuss topics on list
+      * Dave: if we form an RG, there is benefit to meet at IETF
+        * not having experts in Internet tech (routing, sec) close to this would be sub-optimal
+      * Lars: summary: run charter discussion on list, leaning towards chartering a group, revisit whether chartering will be correct
+
+
+
+
+
+
+

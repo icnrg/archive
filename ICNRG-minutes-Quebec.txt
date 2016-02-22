@@ -1,0 +1,126 @@
+Minutes from ICNRG side meeting @ IETF-81 ¶
+
+    •    Date: Tuesday 2011-07-26, 13:00 -- 15:00
+    •    Location: Room 303AB
+
+Draft Agenda
+    •    Overview and Agenda bashing - Börje & Dirk [10 min]
+    •    Information-Centric Networking Concepts and Scope - Dirk Kutscher [30 min]
+    •    ICNRG charter proposal presentation and discussion - Börje Ohlman [45 min]  (Slides)
+    •    Next Steps [20 min]
+
+Number of participants: 39
+
+Overview Discussion
+----------------------------
+
+Is ICN only of interest if done on a global scale?
+Basically yes! It is intended as a new global networking architecture.
+
+The type of dos attacks that can be made will be different, this needs to be dealt with.
+Mobility will also pose a new set of issues, it might be easier to deal with when you can get your objects from multiple sources.
+
+The goal of the RG?
+The RG needs a goal - architecture?
+Architecture is good to drive the work.
+
+How may participants from ICN projects in the room? About 15-20
+
+Why should people come here, compared to other events?
+Compared to academic, interops, it easy to leverage other expertise in IETF/IRTF, good for bits work
+Is there a way to merge things, better done here.
+
+Lars: RGs are encouraged to meet in conjunction with IETF, but not only! Meetings at other venues are very welcome.
+
+An issue might be that there are strong commercial interests in ICN.
+DTN did not have strong commercial implications.
+
+Marcelo: what is the goal: common architecture or not?
+
+Lixia: premature convergence may be an issue
+
+
+Charter Discussion
+------------------------
+
+Lars: is idea that every layer is information-centric? Doing something on application-layer may be sufficient for some people.
+Börje: ICN must be designed so it can run on top of IP, it should be designed so that it does not require IP
+
+Lixia: for different design approaches, challenges are different
+
+Dave O: notion of having different kinds of ICNs on different networks may be premature statement
+    could be a problematic starting point
+
+Kathleen: mentioned objectives could be good things to look at for one approach
+
+Kathleen: multiple approaches, hopefully open source
+Börje: There are open source downloadable for 4WARD NetInf at neting.org, it includes Firefox and Thunderbird plugins. There is also an open globally available testbed up and running.
+
+Lars: common protocol framework too early
+     there is a question whether there are common components
+
+Ove: would still be good to look at common components
+
+Lixia: premature
+
+Elwyn: projects have been running for a while
+
+Lixia: should not merge projects
+Börje: No one is proposing that.
+
+Elwyn: too early merging would not be good, sure
+
+Dave: danger of premature standardization, if this WG can keep topic
+in research longer, that could be good
+
+Mirja: how is this related to virtualization?
+Boerje: not really
+
+Lars: why this is interesting: Iot -- is related, especially for how to build applications
+     - finding common components too early
+     - looking into application that work with named data could be good umbrella
+     - how do you build this Internet
+
+Dave: there is a danger: not having balance between application view
+of the work and the system's view of the work
+  - if you look too early at apps requirement, you can end up in premature optimization
+  - one idea: nothing in Internet architecture today talks about
+    storage -- here we define storage as first class property of the
+    architecture
+
+Lixia: should keep in mind that there are different application types
+
+Lixia: our project want to move faster, not slower
+      want to see individual projects, different approaches -- not convergence
+      need to start right from day one -- not unification
+      need to understand differences
+
+Joerg: could a research group not help in that?
+
+Dave: outcome is important
+
+Leslie: motivation would be come out of your specific project's box
+
+Kathleen: CCN want to get their work done
+
+Lars: what do we do?
+
+Marcelo: organize workshop to assess interest
+
+Joerg: that has been done already
+
+Marcelo: forum to interact
+
+Mirja: ALTO people are interested in this but were not able to come
+
+Lars: get a room Saturday before next IETF to discuss research
+
+NN: only reason for RG today is visibility
+
+Lars: should be depend on meeting at every IETF
+
+Lars: we are not at a point where we can charter something, a few ways forward:
+     1) enhance charter proposal: forum, learn from each other, have something emerge eventually
+     2) have one-day thing -- talk about technical stuff -- perhaps at SIGCOMM
+
+Ove: don't think waiting makes it better

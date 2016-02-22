@@ -1,0 +1,616 @@
+
+
+
+ICNRG WG                                               A. Narayanan, Ed.
+Internet-Draft                                                S. Previdi
+Intended status: Standards Track                     Cisco Systems, Inc.
+Expires: January 29, 2013                                       B. Field
+                                                                 Comcast
+                                                           July 28, 2012
+
+
+                  BGP advertisements for content URIs
+                    draft-narayanan-icnrg-bgp-uri-00
+
+Abstract
+
+   This document describes the use of BGP to advertise information about
+   content objects in the form of URIs.
+
+Requirements Language
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [RFC2119].
+
+Status of this Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on January 29, 2013.
+
+Copyright Notice
+
+   Copyright (c) 2012 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 1]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+Table of Contents
+
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  Terminology  . . . . . . . . . . . . . . . . . . . . . . . . .  3
+   3.  Requirements . . . . . . . . . . . . . . . . . . . . . . . . .  3
+     3.1.  Named Data Networking  . . . . . . . . . . . . . . . . . .  3
+     3.2.  Intelligent CDN  . . . . . . . . . . . . . . . . . . . . .  4
+   4.  Common BGP Solution  . . . . . . . . . . . . . . . . . . . . .  4
+     4.1.  URI Details  . . . . . . . . . . . . . . . . . . . . . . .  6
+     4.2.  Example of URLs (HTTP) . . . . . . . . . . . . . . . . . .  6
+     4.3.  Example of URNs (NDN)  . . . . . . . . . . . . . . . . . .  7
+   5.  BGP Details  . . . . . . . . . . . . . . . . . . . . . . . . .  8
+     5.1.  Route Selection  . . . . . . . . . . . . . . . . . . . . .  8
+     5.2.  Usage Scope  . . . . . . . . . . . . . . . . . . . . . . .  9
+   6.  Content-URI MP-BGP Encodings . . . . . . . . . . . . . . . . .  9
+     6.1.  Content-URI Attributes . . . . . . . . . . . . . . . . . .  9
+     6.2.  Content-URI NLRI . . . . . . . . . . . . . . . . . . . . . 10
+   7.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 10
+   8.  Security Considerations  . . . . . . . . . . . . . . . . . . . 10
+   9.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 10
+   10. References . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+     10.1. Normative References . . . . . . . . . . . . . . . . . . . 11
+     10.2. Informative References . . . . . . . . . . . . . . . . . . 11
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 2]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+1.  Introduction
+
+   The IRTF ICNRG working group is chartered to investigate subjects
+   relating to information-centric networking.  Within this field, the
+   Named Data Networking (NDN) scheme proposes the use of content names
+   for data objects.  NDN data objecs are identified by an unambiguous
+   content name, and NDN packets do not have traditional source or
+   destination host addresses.  NDN proposes to use IP routing protocols
+   such as OSPF and BGP in order to disseminate routes towards content
+   throughout the network, in much the same way that these protocols
+   disseminate routes towards IP prefixes today.
+
+   Separately, HTTP CDNs would like to use IP routing to carry
+   reachability information about content availability.  This allows
+   CDNs to discover paths to content the same way as IP paths are
+   discovered (as opposed to the current model of statically
+   provisioning forests of trees).  We propose to use BGP to carry a
+   binding of <Content-prefix,server> which will allow cache nodes to
+   discover origins of content and therefore paths through the network
+   to this content.
+
+
+2.  Terminology
+
+   The following terminology is used in this document:
+
+      NDN: Named Data Networking project (http://named-data.net)
+
+      CCN: Content-Centric Networking; often a synonym of Named Data
+      Networking
+
+      CDN: Content Delivery Network
+
+
+3.  Requirements
+
+   The broad requirement is to carry content URIs in BGP in order to
+   advertise the ability to reach the content represented by these URIs.
+   Following are two specific use cases for these requirements.
+
+3.1.  Named Data Networking
+
+   An NDN client issues an Interest packet with a data object name in it
+   to indicate that it wishes to receive the data object with that name.
+   NDN routers follow their forwarding table (or FIB) in order to route
+   the interest packet towards a source of that data.  Once the interest
+   is received by a node which has a copy of the data being requested,
+   the data packet is returned.  The interest lays down a breadcrumb
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 3]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+   trail in the Pending Interest Table (PIT) on all routers along the
+   path, which is unwound to forward the data packet.  Therefore, the
+   job of a NDN router FIB is to contain only routes to content, not
+   devices (neither servers nor clients).  By extension, the use of
+   routing protocols to populate this FIB implies that the function of
+   routing protocols in NDN is to carry routes towards content.
+
+   In NDN, object names consist of a hierarchically structured set of
+   components.  Each component is composed of a number of arbitrary
+   octets.  A named interest lookup in the FIB matches a routing prefix
+   if the complete set of components in the prefix match the beginning
+   set of components in the name.  Partial component matches are not
+   permitted, and neither are matches from components inside the name.
+
+3.2.  Intelligent CDN
+
+   An HTTP cache node receives HTTP requests from a downstream cache or
+   client for an object, specified by a URL.  If the object is present
+   in local cache, it is delivered downstream via HTTP/TCP to the
+   requestor.  Otherwise, the cache node may either issue an error or
+   redirect back to the requestor, but more commonly keeps the request
+   in abeyance and issues its own request for that content object to an
+   upstream cache node.  This chain continues until the request reaches
+   the origin server where it can either be authoritatively served or
+   denied.  Once the content is located, the trail of pending HTTP
+   requests unwinds until the content reaches the client.
+
+   One problem to be solved in this scheme is, which upstream node does
+   the cache issue its request to, and how does it discover this node?
+   Current CDN implementations use private configuration & provisioning
+   mechanisms to build static or dynamic "CDN trees".  However, the
+   problem can be restated as follows: a CDN node needs to locate the
+   closest/best CDN node on the path from it to an origin of the content
+   it is looking for.  This problem is isomorphic to the NDN routing
+   problem described above, and the solution is also the same: have CDN
+   nodes implement a "cache FIB" which matches URL requests against a
+   URL prefix table, and directs requests matching entries in the table
+   to their corresponding "next-hops" which in this case are upstream
+   CDN nodes.  Given this description, the use of routing protocols like
+   BGP and OSPF suggests itself as a mechanism to populate this cache
+   FIB.
+
+
+4.  Common BGP Solution
+
+   These two requirements have much in common.  In both cases, a content
+   name prefix is to be carried as an NLRI to build a content prefix FIB
+   on intermediate routers.  Both applications may utilize sophisticated
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 4]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+   policy to guide the selection of the best upstream node.  Content FIB
+   matching is done on componentized longest prefix match.  Both
+   applications would like the benefits of dynamic routing -- vendor-
+   independent, no requirement of static cache trees, handles multiple
+   content sources well, handles link and node outages and reconverges
+   quickly, etc.
+
+   To this end, we propose a single solution for both these problems.
+   The proposal is to carry URIs as an NLRI in BGP.  The type of the URI
+   will discriminate between applications and also provide some
+   information about the type of content and access protocol.  URI-NLRIs
+   are treated exactly the same as IPv4 NLRIs from a matching and rules
+   processing perspective.  The result is a distributed RIB and a local
+   FIB which contains the best routes (next-hops) towards different
+   groups of content which identify the same prefix.
+
+   The use of URIs as defined in [RFC3986] is proposed to carry routes
+   in BGP.  A new AF type called Content-URI is defined, which carries a
+   URI that indicates the source of some content.  The semantic of the
+   Content-URI NLRI is basically the same as that of other NLRIs like
+   IPv4, namely that a receipt of an advertisement with a Content-URI
+   NLRI defines the path towards content matching the prefix in Content-
+   URI. (in NEXT_HOP, AS_ORIGIN and AS_PATH attributes).  A BGP speaker
+   who issues a Content-URI NLRI must either store the content matching
+   that URI, or know how to reach it (perhaps based on receipt of the
+   same prefix from an upstream BGP speaker).  Existing BGP attributes
+   will be supported with this new NLRI, and also new ICN-specific
+   attributes will be defined for this purpose.
+
+   We define a new BGP Capability [RFC3392] that indicates the ability
+   of a node to support Content-URI AF.  Only BGP speakers who exchange
+   this "Content-URI-Capability" will be permitted to emit and/or
+   receive Content-URI NLRIs.  Specifically, a node that does not
+   receive Content-URI-Capability from its BGP peer MUST NOT forward any
+   NLRIs with Content-URI AF to those neighbors (this may be overridden
+   by policy).
+
+   A node advertises a Content-URI NLRI to indicate reachability to all
+   known content under that URI prefix.  Typically these NLRIs will be
+   originated at origin servers, or nodes that act as origin proxies.
+   BGP speakers MUST NOT originate Content-URI NLRIs simply if they have
+   some content under that URI prefix cached, unless they know that they
+   can retrieve the rest from upstream; this is typically configured by
+   policy for origin proxies or virtual origin servers.
+
+   As with other address families, Content-URI NLRIs populate a RIB with
+   Content-URI addresses.  These do not intersect with NLRIs from other
+   address families such as IPv4.  However, attributes such as NEXT_HOP
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 5]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+   will continue to be of type IPv4 or IPv6, and these may require
+   matching IPv4/IPv6 NLRIs in order to achieve reachability to the next
+   hop.
+
+4.1.  URI Details
+
+   This section presents some of the details with URI handling in BGP.
+
+   NDN name prefixes are not strict subsets of URIs because the
+   component separator is not the same as specified in [RFC3986] and NDN
+   names can contain arbitrary octets.  [RFC3986] specifies that URIs
+   can only consist of a limited set of alphabets, digits and symbols,
+   and describes Percent-Encoding as a mechanism to encode arbitrary
+   octets in URIs.  NDN prefixes will be encoded using '/' as the
+   component separator and percent encoding to carry all octets beyond
+   the limited set supported by URIs.  URLs used in HTTP CDNs are a
+   strict subset of URIs and require no translation to be carried in a
+   Content-URI NLRI.
+
+   URI prefix length is implicitly signaled to be the length of the
+   entire URI string in the NLRI.  All URIs MUST contain a valid URL
+   scheme or URN namespace.  A default (zero-length prefix) route is one
+   which contains only the URL scheme/URN namespace (e.g. "http://" or
+   "ccn:").  BGP implementations which receive Content-URI
+   advertisements which do not satisfy these requirements MUST discard
+   these advertisements.  The URL scheme/URN namespace defines both the
+   prefix matching rules and content retrieval rules.
+
+   There is no requirement that NEXT_HOP addresses actually be located
+   on the BGP router.  For example, BGP advertisements can be
+   distributed by a router infrastructure on behalf of a CDN network,
+   with the NEXT_HOP for Content-URI advertisements pointing to a CDN
+   node.  In this scenario, it is important that BGP also distribute
+   IPv4 NLRIs as required to ensure reachability to these CDN node
+   addresses.
+
+4.2.  Example of URLs (HTTP)
+
+   If the URI advertised is a URL, it includes a scheme which describes
+   the mechanism to retrieve this content, and also a location where
+   this content is present.  BGP speakers who originate URL-type routes
+   must support the scheme indicated in the URL.  The NEXT_HOP attribute
+   is used to identify an alternate location to retrieve the content.
+   For example, if a BGP speaker publishes a Content-URI with a HTTP
+   URL, it must:
+
+
+
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 6]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+   1.  Support the HTTP protocol, as a HTTP proxy [RFC2616]
+
+   2.  Receive HTTP connections on the address it advertises as NEXT_HOP
+
+   3.  Be able to either locally deliver or remotely retrieve content
+       matching the prefix
+
+   A BGP speaker receiving a Content-URI advertisement with an HTTP URL
+   knows that an upstream CDN candidate with the specified IP address
+   from NEXT_HOP can be used to retrieve this content.  On receiving
+   this advertisement, the CDN node can use this information to
+   construct its CDN tree for this content prefix.  For URL matching,
+   the entire prefix must match the beginning of the
+
+   The CDN node MUST use only the protocol specified in the URL scheme
+   to retrieve the object; no other protocol may be assumed to be
+   supported without external configuration.  For example, an
+   advertisement for a "http://" URL implies that the NEXT_HOP node
+   supports only HTTP, not HTTPS or SPDY.  Alternative protocols are
+   supported through advertising multiple URLs with different scheme
+   (but see below for an alternative solution).
+
+4.3.  Example of URNs (NDN)
+
+   If the URI is of URN form, it does not identify a scheme or locator,
+   but rather a namespace prefix.  BGP speakers who advertise Content-
+   URIs with a specific namespace MUST implement a well-defined
+   mechanism and protocol to retrieve content within this namespace.
+   For example, the "ccn:" namespace indicates a CCN content prefix, but
+   this also implies that the (re-)originator of this BGP advertisement
+   will be able to receive an Interest message for matching content, and
+   either return the content from local storage, or forward the interest
+   upstream towards the origin of the content.  If a BGP speaker
+   publishes a Content-URI with a NDN namespace, it must:
+
+   1.  Support NDN forwarding
+
+   2.  Be prepared to receive an NDN interest matching this prefix, on
+       the address indicated in NEXT_HOP
+
+   3.  Be able to either locally return the matching data packet, or
+       forward the interest upstream
+
+   An NDN router receiving a BGP update with a NDN Content-URI
+   advertisement uses this update to populate its FIB with a route for
+   that prefix pointing towards the face.  Note that NDN BGP speakers
+   must also have faces congruent with their addressing.  Hence, it is a
+   requirement for all BGP speakers issuing NDN Content-URIs that they
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 7]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+   have functional NDN faces on all addresses included in NEXT_HOPs.
+
+   NDN prefixes are matched in entirety
+
+
+5.  BGP Details
+
+   The following BGP details should be taken into account during
+   implementaition
+
+   Origination: A BGP speaker can originate a Content-URI NLRI if and
+   only if:
+
+   1.  It understands the scheme or namespace of the URI
+
+   2.  It implements a well-known standard for transferring this type of
+       content to a requestor
+
+   3.  Stores the content locally or know a path (external or internal)
+       to locate this content.
+
+   Nodes can re-originate BGP advertisements at any time; typically
+   because of receiving an advertisement from another remote node in the
+   chain or importing an equivalent route from another routing protocol
+   or routing domain; however, all the conditions above will apply.
+
+   Nodes can forward BGP advertisements (without rewriting NEXT_HOP)
+   which do not satisfy these requirements (e.g. unknown or unsupported
+   scheme/namespace).  However, reachability to NEXT_HOP can become an
+   issue and network administrators SHOULD deploy additional routes to
+   avoid blackholes.
+
+5.1.  Route Selection
+
+   Adj-Rib-Out selection of Content-URI routes follows the same rules as
+   selection for IPv4 routes.  Two Content-URI NLRIs are identical for
+   selection purposes if the URI strings in both of them are identical.
+   The URL scheme or URN namespace MUST be included in the comparison.
+   All URIs MUST contain
+
+   Routers MAY implement sophisticated policy rules to enable route
+   selection.  This includes aggregate route generation policies,
+   although note the same issues with "prefix holes" existing in IPv4
+   aggregation also apply to Content-URI.  Aggregate route generation
+   MUST only remove entire components and aggregate on token boundaries
+   ('/').  Aggregate routes MAY be rewritten arbitrarily by policy, as
+   in any BGP implementation.
+
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 8]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+   Local-Rib construction from Content-URI advertisements is more
+   flexible than for IP and is left to the implementation.  For example,
+   the Local-Fib can contain multiple overlapping routes.  This allows
+   implementations to deploy sophisticated forwarding strategies.  Note
+   that loop detection MUST be a part of any implementation that
+   attempts to implement these forwarding strategies.  Schemes like HTTP
+   CDNs and NDN already implement loop detection intrinsically.
+
+5.2.  Usage Scope
+
+   Content-URI advertisements may be shared across IBGP or EBGP
+   sessions.  Note that the scalability of large-scale Content-URI
+   deployment in the Internet has not been evaluated.  Hence,
+   deployments SHOULD restrict Content-URIs within their administrative
+   boundaries where the number of URIs exported is managed wthin
+   scalability limits of BGP.  To this end:
+
+   1.  Content-URI advertisements MUST NOT be advertised to a BGP peer
+       who does not signal the CONTENT_URI_CAP capability.  This acts as
+       a natural filter preventing these advertisements from flooding
+       Internet routers
+
+   2.  Content-URI advertisements SHOULD carry the "no-export" community
+       string to restrict advertisements across EBGP.  However, if a
+       network operator wishes to deploy Content-URI across AS
+       boundaries within their administrative purview, they MUST deploy
+       appropriate filtering such that Content-URI advertisements do not
+       travel outside their administrative purview.
+
+
+6.  Content-URI MP-BGP Encodings
+
+   This section describes the Content-URI MP-BGP messages with their
+   attributes and NLRI encodings details.
+
+6.1.  Content-URI Attributes
+
+   We uses standard BGP attributes in Content-URI advertisements:
+
+      NEXT_HOP: Identifies the address that provides reachability to
+      this content prefix.  Note that the mechanism to retrieve this
+      content is inferred from the URI scheme/namespace.
+
+      ORIGIN, AS_PATH: Same behaviour as RFC4271
+
+      MED, LOCAL_PREF: Same behaviour as RFC4271
+
+
+
+
+
+Narayanan, et al.       Expires January 29, 2013                [Page 9]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+      ATOMIC_AGGREGATE: Not used
+
+6.2.  Content-URI NLRI
+
+   Multiprotocol-BGP defines two attributes, MP_REACH and MP_UNREACH,
+   that are BGP's containers for carrying opaque information.  Each
+   Content-URI NLRI describes a (reachable or unreachable) route to
+   content prefix.
+
+   All Content-URI NLRIs MUST be encoded using AFI TBD (Content-URI)
+   with SAFI TBD.
+
+   In order for two BGP speakers to exchange Content-URI NLRI, they MUST
+   use BGP Capabilities Advertisement to ensure that they both are
+   capable of properly processing Content-URI NLRI.  This is done as
+   specified in [RFC4760], by using capability code 1 (multi-protocol
+   BGP), with the AFI: TBD (Content-URI).
+
+        0                   1                   2                   3
+        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |            NLRI Length        |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                                                               |
+       |                       Content-URI NLRI (variable)             |
+       |                                                               |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+7.  IANA Considerations
+
+   A new Address Family type for Content-URI will be required.  A new
+   Subsequent Address Family type for Content-URI will also be required.
+
+
+8.  Security Considerations
+
+   This draft does not affect the BGP security model.
+
+
+9.  Acknowledgements
+
+   We appreciate comments from Lan Wang, Jan Medved, Mahesh Vittal and
+   Matt Ferguson.
+
+
+10.  References
+
+
+
+Narayanan, et al.       Expires January 29, 2013               [Page 10]
+
+Internet-Draft            BGP URI advertisement                July 2012
+
+
+10.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC3986]  Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
+              Resource Identifier (URI): Generic Syntax", STD 66,
+              RFC 3986, January 2005.
+
+   [RFC4360]  Sangli, S., Tappan, D., and Y. Rekhter, "BGP Extended
+              Communities Attribute", RFC 4360, February 2006.
+
+10.2.  Informative References
+
+   [RFC4271]  Rekhter, Y., Li, T., and S. Hares, "A Border Gateway
+              Protocol 4 (BGP-4)", RFC 4271, January 2006.
+
+
+Authors' Addresses
+
+   Ashok Narayanan (editor)
+   Cisco Systems, Inc.
+   1414 Massachusetts Avenue
+   Boxborough, MA  01719
+   US
+
+   Email: ashokn@cisco.com
+
+
+   Stefano Previdi
+   Cisco Systems, Inc.
+   Via Del Serafico 200
+   Rome  00191
+   IT
+
+   Email: sprevidi@cisco.com
+
+
+   Brian Field
+   Comcast
+   4100 East Dry Creek
+   Centennial  CO
+   US
+
+   Email: brian_field@cable.comcast.com
+
+
+
+
+
+
+Narayanan, et al.       Expires January 29, 2013               [Page 11]
+

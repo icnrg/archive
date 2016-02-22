@@ -1,0 +1,538 @@
+ICNRG                                                      S. Lederer
+Internet Draft                                            C. Timmerer
+Intended status: Informational      Alpen-Adria University Klagenfurt
+Expires: Jan 2014                                         C. Westphal
+                                                               Huawei
+                                                           C. Mueller
+                                                             Bitmovin
+
+                                                         July 23, 2013
+
+                     Adaptive Video Streaming over ICN
+                   draft-video-streaming-over-ICN-00.txt
+
+
+Status of this Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79. This document may not be modified,
+   and derivative works of it may not be created, and it may not be
+   published except as an Internet-Draft.
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79. This document may not be modified,
+   and derivative works of it may not be created, except to publish it
+   as an RFC and to translate it into languages other than English.
+
+   This document may contain material from IETF Documents or IETF
+   Contributions published or made publicly available before November
+   10, 2008. The person(s) controlling the copyright in some of this
+   material may not have granted the IETF Trust the right to allow
+   modifications of such material outside the IETF Standards Process.
+   Without obtaining an adequate license from the person(s) controlling
+   the copyright in such materials, this document may not be modified
+   outside the IETF Standards Process, and derivative works of it may
+   not be created outside the IETF Standards Process, except to format
+   it for publication as an RFC or to translate it into languages other
+   than English.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six
+   months and may be updated, replaced, or obsoleted by other documents
+
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 1]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+   at any time.  It is inappropriate to use Internet-Drafts as
+   reference material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+   This Internet-Draft will expire on January 23, 2014.
+
+Copyright Notice
+
+   Copyright (c) 2013 IETF Trust and the persons identified as the
+   document authors. All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document. Please review these documents
+   carefully, as they describe your rights and restrictions with
+   respect to this document.
+
+Abstract
+
+   This document presents the usage of Information Centric Networks
+   (ICN) for adaptive multimedia streaming and identifies problems
+   which have to be considered for such applications. As solution DASH
+   over ICN is presented, which leverages the recent ISO/IEC MPEG
+   Dynamic Adaptive Streaming over HTTP (DASH) standard. DASH over ICN
+   offers the possibility to transfer data from multiple sources as
+   well as over multiple links in parallel, which is definitely an
+   important feature, e.g., for mobile devices offering multiple
+   network links. In addition to this, the named multimedia content is
+   routed and cached efficiently by the underlying network.
+
+Table of Contents
+
+
+   1. Introduction ................................................ 3
+   2. Conventions used in this document ........................... 3
+   3. A Short Primer on Dynamic Adaptive Streaming ................ 4
+   4. Interactions of Dynamic Adaptive Streaming with ICN.......... 4
+   5. DASH over CCN ............................................... 6
+   6. Security Considerations...................................... 8
+   7. IANA Considerations ......................................... 8
+   8. Conclusions ................................................. 8
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 2]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+   9. References .................................................. 8
+
+  1. Introduction
+
+   The unprecedented growth of video traffic has triggered a rethinking
+   of how content is distributed, both in terms of the underlying
+   Internet architecture and in terms of the streaming mechanisms to
+   deliver video objects.
+
+   In particular, the IRTF ICN working group has been chartered to
+   study new architecture centered upon information; while Dynamic
+   Adaptive Streaming over HTTP (DASH)[1] has been developed to provide
+   an open, common delivery mechanism for video streams that is able to
+   adapt to the network conditions.
+
+   DASH is designed to run over the current Internet architecture (more
+   accurately, over HTTP) but a similar video streaming mechanism would
+   be required in an ICN architecture.
+
+   However, dynamic adaptive streaming in an ICN will encounter some
+   issues that will require specific adjustment to make it fully
+   functional in an ICN architecture.
+
+   Some documents have started to consider the ICN-specific
+   requirements of dynamic adaptive streaming [2][3][4][6].
+
+   In this document, we give a brief overview of what is dynamic
+   adaptive video streaming. We then consider the interactions of such
+   adaptive mechanism with the ICN architecture and list some of the
+   interactions any video streaming mechanism will have to consider. We
+   describe an implementation of DASH over CCN as a possible mechanism
+   for video streaming in an ICN architecture.
+
+  2. Conventions used in this document
+
+   In examples, "C:" and "S:" indicate lines sent by the client and
+   server respectively.
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC-2119 [RFC2119].
+
+   In this document, these words will appear with that interpretation
+   only when in ALL CAPS. Lower case uses of these words are not to be
+   interpreted as carrying RFC-2119 significance.
+
+
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 3]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+   In this document, the characters ">>" preceding an indented line(s)
+   indicates a compliance requirement statement using the key words
+   listed above. This convention aids reviewers in quickly identifying
+   or finding the explicit compliance requirements of this RFC.
+
+  3. A Short Primer on Dynamic Adaptive Streaming
+
+   The basic concept of DASH [1] is to use segments of media content,
+   which can be encoded at different resolutions, bitrates, etc. as so-
+   called representations. These segments are served by conventional
+   HTTP Web servers and can be addressed via HTTP GET requests from the
+   client. As a consequence, the streaming system is pull-based and the
+   entire streaming logic is located on the client, which makes it
+   scalable, and possible to adapt the media stream to the client's
+   capabilities.
+
+   In addition to this, the content can be distributed using
+   conventional CDNs and their HTTP infrastructure, which also scales
+   very well. In order to specify the relationship between the
+   contents' media segments and the associated bitrate, resolution, and
+   timeline, the Media Presentation Description (MPD) is used, which is
+   a XML document. The MPD refers the available media segments using
+   HTTP URLs, which can be used by the client for retrieving them.
+
+  4. Interactions of Dynamic Adaptive Streaming with ICN
+
+   Video streaming, and DASH in particular, have been designed with
+   goals that are aligned with that of most ICN proposals. Namely, it
+   is a client-based mechanism which requests items (in this case,
+   chunks of a video stream) by name.
+
+   ICN and MPEG-DASH [1] have several elements in common:
+
+   - the client-initiated pull approach;
+   - the content being dealt with in pieces (or chunks);
+   - the support of efficient replication and distribution of content
+      pieces within the network;
+   - the session-free nature of the exchange between the client and the
+      server at the streaming layer: the client is free to request any
+      chunk from any location;
+   - the support for potentially multiple sources.
+
+   As ICN is a promising candidate for the Future Internet (FI)
+   architecture, it is useful to investigate its suitability in
+   combination with multimedia streaming standards like MPEG-DASH. In
+   this context, the purpose of this draft is to present the usage of
+   ICN instead of HTTP in MPEG-DASH
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 4]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+   However, there are some issues that arise from using a dynamic rate
+   adaptation mechanism in an ICN architecture:
+
+   o Naming of the data in DASH does not necessarily follow the ICN
+      convention of any of the ICN proposals. Several chunks of the
+      same video stream might currently go by different names, that for
+      instance do not share a common prefix. There is a need to
+      harmonize the naming of the chunks in DASH with the naming
+      conventions of the ICN. The naming convention of using a
+      filename/time/encoding format could for instance be made
+      compatible with the convention of CCN.
+
+   o While chunks can be retrieved from any server, the rate
+      adaptation mechanism attempts to estimate the available network
+      bandwidth so as to select the proper playback rate and keep its
+      playback buffer at the proper level. Therefore, there is a need
+      to either include some location semantics in the data chunks so
+      as to properly assess the throughput to a specific location; or
+      to design a different mechanism to evaluate the available network
+      bandwidth.
+
+   o The typical issue of access control and accounting happens in
+      this context, where chunks can be cached in the network outside
+      of the administrative control of the content publisher. It might
+      be a requirement from the owner of the video stream that access
+      to these data chunks need to be accounted/billed/monitored.
+
+   o Dynamic streaming multiplies the representations of a given video
+      stream, therefore diminishing the effectiveness of caching:
+      namely, to get a hit for a chunk in the cache, it has to be for
+      the same format and encoding values. Alternatively, to get the
+      same hit rate as for a stream using a single encoding, the cache
+      size must be scaled up to include all the possible
+      representations.
+
+   o Caching introduces oscillatory dynamics as it may modify the
+      estimation of the available bandwidth between the end user and
+      the repository where it is getting the chunks from. For instance,
+      if an edge cache holds a low resolution representation near the
+      user, the user getting this low resolution chunks will observe a
+      good performance, and will then request higher resolution chunks.
+      If those are hosted on a server with poor performance, then the
+      client would have to switch back to the low representation. This
+      oscillation may be detrimental to the perceived QoE of the user.
+
+
+
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 5]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+   o The ICN transport mechanism needs to be compatible to some extent
+      with DASH. To take a CCN example, the rate at which interests are
+      issued should be such that the chunks received in return arrive
+      fast enough and with the proper encoding to keep the playback
+      buffer above some threshold.
+
+   o The usage of multiple network interfaces is possible in ICN,
+      enabling a seamless handover between them. For the combination
+      with DASH, an intelligent strategy which should focus on traffic
+      load balancing between the available links may be necessary. This
+      would increase the effective media throughput of DASH by
+      leveraging the combined available bandwidth of all links,
+      however, it could potentially lead to high variations of the
+      media throughput.
+
+   o DASH does not define how the MPD is retrieved, hence, this is
+      compatible with CCN. However, the current profiles defined within
+      MPEG-DASH require the MPD to contain HTTP-URLs (incl. http and
+      https URI schemes) to identify segments. To enable a more
+      integrated approach as described in this document, an additional
+      profile for DASH over CCN has to be defined, enabling ICN/CCN-
+      based URIs to identify and request the media segments.
+
+   We now describe a potential implementation of a dynamic adaptive
+   video stream over ICN, based upon DASH and CCN [5].
+
+  5.  DASH over CCN
+
+   DASH is intended to enable adaptive streaming, i.e., each content
+   piece can be provided in different qualities, formats, languages,
+   etc. to cope with the diversity of todays' networks and devices. As
+   this is an important requirement for Future Internet proposals like
+   CCN, the combination of those two technologies seems to be obvious.
+   Since those two proposals are located at different protocol layers -
+   DASH at the application and CCN at the network layer - they can be
+   combined very efficiently to leverage the advantages of both and
+   potentially eliminate existing disadvantages. As CCN is not based on
+   classical host-to-host connections, it is possible to consume
+   content from different origin nodes as well as over different
+   network links in parallel, which can be seen as an intrinsic error
+   resilience feature w.r.t. the network. This is a useful feature of
+   CCN for adaptive multimedia streaming within mobile environments
+   since most mobile devices are equipped with multiple network links
+   like 3G and WiFi. CCN offers this functionality out of the box which
+   is beneficial when used for DASH-based services. In particular, it
+   is possible to enable adaptive video streaming handling both
+   bandwidth and network link changes. That is, CCN handles the network
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 6]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+   link decision and DASH is implemented on top of CCN to adapt the
+   video stream to the available bandwidth.
+
+   In principle, there are two options to integrate DASH and CCN: a
+   proxy service acting as a broker between HTTP and CCN as proposed in
+   [6], and the DASH client implementing a native CCN interface. The
+   former transforms an HTTP request to a corresponding interest packet
+   as well as a data packet to an HTTP response, including reliable
+   transport as offered by TCP. This may be a good compromise to
+   implement CCN in a managed network and to support legacy devices. As
+   such a proxy is already described in [6] this draft focusses on a
+   more integrated approach, aiming at fully exploiting the potential
+   of CCN. That is, a native CCN interface within the DASH client,
+   which adopts a CCN naming scheme (CCN URIs) to denote segments in
+   the Media Presentation Description (MPD). In this architecture, only
+   the network access component on the client has to be modified and
+   the segment URIs within MPD have to be updated according to the CCN
+   naming scheme.
+
+   Initially, the DASH client retrieves the MPD containing the CCN URIs
+   of the content representations including the media segments. The
+   naming scheme of the segments may reflect intrinsic features of CCN
+   like versioning and segmentation support. Such segmentation support
+   is already compulsory for multimedia streaming in CCN and, thus, can
+   also be leveraged for DASH-based streaming over CCN. The CCN
+   versioning can be adopted in a further step to signal different
+   representations of the DASH-based content, which enables an implicit
+   adaptation of the requested content to the clients' bandwidth
+   conditions. That is, the interest packet already provides the
+   desired characteristics of a segment (such as bit rate, resolution,
+   etc.) within the content name. Additionally, if bandwidth conditions
+   of the corresponding interfaces or routing paths allow so, DASH
+   media segments could be aggregated automatically by the CCN nodes,
+   which reduces the amount of interest packets needed to request the
+   content. However, such approaches need further research,
+   specifically in terms of additional intelligence and processing
+   power needed at the CCN nodes.
+
+   After requesting the MPD, the DASH client will start to request
+   particular segments. Therefore, CCN interest packets are generated
+   by the CCN access component and forwarded to the available
+   interfaces. Within the CCN, these interest packets leverage the
+   efficient interest aggregation for, e.g., popular content, as well
+   as the implicit multicast support. Finally, the interest packets are
+   satisfied by the corresponding data packets containing the video
+   segment data, which are stored on the origin server or any CCN node,
+   respectively. With an increasing popularity of the content, it will
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 7]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+   be distributed across the network resulting in lower transmission
+   delays and reduced bandwidth requirements for origin servers and
+   content providers respectively.
+
+  6. Security Considerations
+
+   This is informational. Security considerations are TBD.
+
+  7. IANA Considerations
+
+   This is informational. IANA considerations are TBD.
+
+  8. Conclusions
+
+   This draft proposed adaptive video streaming for ICN, identified
+   potential problems and presented the combination of CCN with DASH as
+   a solution. As both concepts, DASH and CCN, maintain several
+   elements in common, like, e.g., the content in different versions
+   being dealt with in segments, combination of both technologies seems
+   useful. Thus, adaptive streaming over CCN can leverage advantages
+   such as, e.g., efficient caching and intrinsic multicast support of
+   CCN, routing based on named data URIs, intrinsic multi-link and
+   multi-source support, etc.
+
+   In this context, the usage of CCN with DASH in mobile environments
+   comes together with advantages compared to today's solutions,
+   especially for devices equipped with multiple network interfaces.
+   The retrieval of data over multiple links in parallel is a useful
+   feature, specifically for adaptive multimedia streaming, since it
+   offers the possibility to dynamically switch between the available
+   links depending on their bandwidth capabilities, transparent to the
+   actual DASH client.
+
+  9. References
+
+   [1]  ISO/IEC DIS 23009-1.2, Information technology - Dynamic
+         adaptive streaming over HTTP (DASH) - Part 1: Media
+         presentation description and segment formats
+
+   [2]  Lederer, S., Müller, C., Rainer, B., Timmerer, C., Hellwagner,
+         H., "An Experimental Analysis of Dynamic Adaptive Streaming
+         over HTTP in Content Centric Networks", in Proceedings of the
+         IEEE International Conference on Multimedia and Expo 2013, San
+         Jose, USA, July, 2013
+
+
+
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 8]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+   [3]  Liu, Y., Geurts, J., Point, J., Lederer, S., Rainer, B.,
+         Mueller, C., Timmerer, C., Hellwagner, H., "Dynamic Adaptive
+         Streaming over CCN: A Caching and Overhead Analysis", in
+         Proceedings of the IEEE international Conference on
+         Communication (ICC) 2013 - Next-Generation Networking
+         Symposium, Budapest, Hungary, June, 2013
+
+   [4]  Grandl, R., Su, K., Westphal, C., "On the Interaction of
+         Adaptive Video Streaming with Content-Centric Networks",
+         eprint arXiv:1307.0794, July 2013.
+
+   [5]  V. Jacobson, D. Smetters, J. Thornton, M. Plass, N. Briggs and
+         R. Braynard, "Networking named content", in Proc. of the 5th
+         int. Conf. on Emerging Networking Experiments and Technologies
+         (CoNEXT '09). ACM, New York, NY, USA, 2009, pp. 1-12.
+
+   [6]  A. Detti, M. Pomposini, N. Blefari-Melazzi, S. Salsano and A.
+         Bragagnini, "Offloading cellular networks with Information-
+         Centric Networking: The case of video streaming", In Proc. of
+         the Int. Symp. on a World of Wireless, Mobile and Multimedia
+         Networks (WoWMoM '12), IEEE, San Francisco, CA, USA, 1-3,
+         2012.
+
+Authors' Addresses
+
+   Stefan Lederer, Christian Timmerer
+   Alpen-Adria University Klagenfurt
+   Universitätsstrasse 65-67, 9020 Klagenfurt, Austria
+
+   Email: {firstname.lastname}@itec.aau.at
+
+
+   Cedric Westphal
+   Huawei
+   2330 Central Expressway, Santa Clara, CA95050, USA
+
+   Email: cedric.westphal@huawei.com
+
+
+   Christopher Mueller
+   bitmovin GmbH
+   Lakeside B01, 9020 Klagenfurt, Austria
+
+   Email: christopher.mueller@bitmovin.net
+
+
+
+
+
+Lederer, et al.       Expires January 23, 2014                [Page 9]
+
+Internet-Draft    Adaptive Video Streaming over ICN          July 2013
+
+
+Acknowledgements
+
+   This work was supported in part by the EC in the context of the
+   SocialSensor (FP7-ICT-287975) project and partly performed in the
+   Lakeside Labs research cluster at AAU. SocialSensor receives
+   research funding from the European Community's Seventh Framework
+   Programme. Apart from this, the European Commission has no
+   responsibility for the content of this draft. The information in
+   this document is provided as is and no guarantee or warranty is
+   given that the information is fit for any particular purpose. The
+   user thereof uses the information at its sole risk and liability.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Lederer, et al.       Expires January 23, 2014               [Page 10]
+
